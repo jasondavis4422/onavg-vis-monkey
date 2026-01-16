@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brain Vertex Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background-color: black;
+      color: white;
+    }
+    #page-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    #upload-container {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    #main-content {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+    #brain-image {
+      max-width: 80%;
+      max-height: 80%;
+      object-fit: contain;
+    }
+    #table-container {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      font-size: 12px;
+      width: auto;
+      padding-left: 10px;
+    }
+    #table-container table {
+      border-collapse: collapse;
+    }
+    #table-container th, #table-container td {
+      border: 0.5px solid white;
+      padding: 4px;
+      text-align: center;
+    }
+    #table-container td:nth-child(2), #table-container td:nth-child(3) {
+      text-align: left;
+    }
+    #info-container {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    #vertex-info, #file-name {
+      margin: 0;
+      padding: 0;
+    }
+    /* New button styling */
+    #homepage-button {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 100;
+    }
+    #homepage-button button {
+      padding: 8px 12px;
+      background-color: #4682B4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+  <!-- Button to return to homepage -->
+  <div id="homepage-button">
+    <a href="instructions.html">
+      <button>Instructions</button>
+    </a>
+  </div>
+
+  <div id="upload-container">
+    <input type="file" id="imageUpload" accept="image/*">
+  </div>
+
+  <div id="page-container">
+    <div id="main-content">
+      <div id="table-container">
+        <table>
+          <thead>
+            <tr><th></th><th>LH</th><th>RH</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ico8</td><td>0-602</td><td>603-1209</td></tr>
+            <tr><td>ico16</td><td>0-2416</td><td>2417-4830</td></tr>
+            <tr><td>ico32</td><td>0-9674</td><td>9675-19340</td></tr>
+            <tr><td>ico64</td><td>0-38697</td><td>38698-77325</td></tr>
+            <tr><td>ico128</td><td>0-154785</td><td>154786-309345</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <img id="brain-image" src="_static/ico8brain.png" alt="Brain Image">
+    </div>
+
+    <div id="info-container">
+      <p id="file-name"></p>
+      <p id="vertex-info">Hover over the image to see vertex information</p>
+    </div>
+  </div>
+
+  <script>
+    // Global variables for mapping and lookup data
+    let mappingData = null,
+        lookupTableIco8 = null,
+        lookupTableIco16 = null,
+        lookupTableIco32 = null,
+        lookupTableIco64 = null,
+        lookupTableIco128 = null,
+        // New FS128 parcellation data (assumed to be combined for both hemispheres)
+        fs128_aparc = null,
+        fs128_aparc_a2009s = null,
+        fs128_aparc_DKTatlas = null,
+        originalWidth = 0,
+        originalHeight = 0,
+        scaleX = 1,
+        scaleY = 1;
+  
+    const image = $('#brain-image');
+    const vertexInfo = $('#vertex-info');
+    const fileNameInfo = $('#file-name');
+  
+    // Display the file name from the image source
+    function displayFileName() {
+      const fileName = image.attr('src').split('/').pop();
+      fileNameInfo.text(`File: ${fileName}`);
+    }
+  
+    // Load JSON files using jQuery's getJSON (client-side only)
+    function loadData() {
+      $.when(
+        $.getJSON("_static/mapping_data_ico128.json", function(data) {
+          mappingData = data;
+          originalHeight = mappingData.length;
+          originalWidth = mappingData[0].length;
+          console.log(`Mapping data loaded: (${originalWidth} x ${originalHeight})`);
+        }),
+        $.getJSON("_static/lookup_table_ico8.json", function(data) {
+          lookupTableIco8 = data;
+          console.log("Lookup table ico8 loaded");
+        }),
+        $.getJSON("_static/lookup_table_ico16.json", function(data) {
+          lookupTableIco16 = data;
+          console.log("Lookup table ico16 loaded");
+        }),
+        $.getJSON("_static/lookup_table_ico32.json", function(data) {
+          lookupTableIco32 = data;
+          console.log("Lookup table ico32 loaded");
+        }),
+        $.getJSON("_static/lookup_table_ico64.json", function(data) {
+          lookupTableIco64 = data;
+          console.log("Lookup table ico64 loaded");
+        }),
+        $.getJSON("_static/lookup_table_ico128.json", function(data) {
+          lookupTableIco128 = data;
+          console.log("Lookup table ico128 loaded");
+        }),
+        // Load FS128 parcellation JSON files (already combined for both hemispheres)
+        $.getJSON("_static/fs128_aparc.json", function(data) {
+          fs128_aparc = data;
+          console.log("FS128 aparc loaded");
+        }),
+        $.getJSON("_static/fs128_aparc.a2009s.json", function(data) {
+          fs128_aparc_a2009s = data;
+          console.log("FS128 aparc.a2009s loaded");
+        }),
+        $.getJSON("_static/fs128_aparc.DKTatlas.json", function(data) {
+          fs128_aparc_DKTatlas = data;
+          console.log("FS128 aparc.DKTatlas loaded");
+        })
+      ).done(function() {
+        console.log("All JSON files loaded successfully.");
+        updateDisplaySize();  // Update scale factors after loading dimensions
+      });
+    }
+  
+    // Update scaling factors based on current image display size vs. original data size
+    function updateDisplaySize() {
+      const rect = image[0].getBoundingClientRect();
+      const displayWidth = rect.width;
+      const displayHeight = rect.height;
+      scaleX = originalWidth / displayWidth;
+      scaleY = originalHeight / displayHeight;
+      console.log(`Display size: ${displayWidth} x ${displayHeight}`);
+      console.log(`Scaling factors: scaleX=${scaleX}, scaleY=${scaleY}`);
+    }
+  
+    // Given mouse coordinates in the scaled space, return the vertex index from mapping data
+    function getVertexFromMapping(mouseX, mouseY) {
+      if (mouseY >= 0 && mouseY < originalHeight && mouseX >= 0 && mouseX < originalWidth) {
+        const vertex = mappingData[mouseY][mouseX];
+        return (vertex !== -1) ? vertex : null;
+      }
+      return null;
+    }
+  
+    // Handle image upload, update the displayed image and file name
+    $('#imageUpload').on('change', function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        fileNameInfo.text(`File: ${file.name}`);
+        const imageUrl = URL.createObjectURL(file);
+        image.attr('src', imageUrl);
+        image.on('load', function() {
+          updateDisplaySize();
+        });
+      }
+    });
+  
+    // When the document is ready, load JSON data and set up event handlers
+    $(document).ready(function() {
+      displayFileName();
+      loadData();
+  
+      $(window).resize(function() {
+        updateDisplaySize();
+      });
+  
+      // Process mouse movement over the image
+      image.on('mousemove', function(event) {
+        const rect = this.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+    
+        if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+          const mouseXOriginal = Math.floor(x * scaleX);
+          const mouseYOriginal = Math.floor(y * scaleY);
+          console.log(`Mouse: (${x.toFixed(1)}, ${y.toFixed(1)}) -> Scaled: (${mouseXOriginal}, ${mouseYOriginal})`);
+          
+          const vertex = getVertexFromMapping(mouseXOriginal, mouseYOriginal);
+    
+          if (vertex !== null) {
+            // ICO lookup table data
+            const ico8 = lookupTableIco8[vertex];
+            const ico16 = lookupTableIco16[vertex];
+            const ico32 = lookupTableIco32[vertex];
+            const ico64 = lookupTableIco64[vertex];
+            const ico128 = lookupTableIco128[vertex];
+            
+            // FS128 parcellation data (from the combined files)
+            const fs128_aparc_val = fs128_aparc ? fs128_aparc[vertex] : "N/A";
+            const fs128_aparc_a2009s_val = fs128_aparc_a2009s ? fs128_aparc_a2009s[vertex] : "N/A";
+            const fs128_aparc_DKTatlas_val = fs128_aparc_DKTatlas ? fs128_aparc_DKTatlas[vertex] : "N/A";
+            
+            vertexInfo.html(
+              `<br><strong>onavg coordinate:</strong><br>
+               ico8: ${ico8} <br>
+               ico16: ${ico16} <br>
+               ico32: ${ico32} <br>
+               ico64: ${ico64} <br>
+               ico128: ${ico128} <br><br>
+               <strong>fsavg parcellation (ico128):</strong><br>
+               aparc: ${fs128_aparc_val} <br>
+               aparc.a2009s: ${fs128_aparc_a2009s_val} <br>
+               aparc.DKTatlas: ${fs128_aparc_DKTatlas_val}`
+            );
+          } else {
+            vertexInfo.text('No vertex selected');
+          }
+        } else {
+          vertexInfo.text('No vertex selected');
+        }
+      });
+    
+      image.on('mouseleave', function() {
+        vertexInfo.text('No vertex selected');
+      });
+    });
+  </script>  
+</body>
+</html>
