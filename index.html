@@ -129,28 +129,23 @@
             <tbody>
               <tr>
                 <td>ico8</td>
-                <td>0-602</td>
-                <td>603-1209</td>
+                <td>0-622</td>
+                <td>623-1243</td>
               </tr>
               <tr>
                 <td>ico16</td>
-                <td>0-2416</td>
-                <td>2417-4830</td>
+                <td>0-2484</td>
+                <td>2485-4968</td>
               </tr>
               <tr>
                 <td>ico32</td>
-                <td>0-9674</td>
-                <td>9675-19340</td>
+                <td>0-9929</td>
+                <td>9930-19862</td>
               </tr>
               <tr>
-                <td>ico64</td>
-                <td>0-38697</td>
-                <td>38698-77325</td>
-              </tr>
-              <tr>
-                <td>ico128</td>
-                <td>0-154785</td>
-                <td>154786-309345</td>
+                <td>MEBRAIN</td>
+                <td>0-98022</td>
+                <td>98023-196069</td>
               </tr>
             </tbody>
           </table>
@@ -162,7 +157,7 @@
         <p id="file-name"></p>
         <p id="vertex-info">
           Hover over the image to see vertex information. Each vertex contains
-          the relevant numerical and string-labeled parcel.
+          the relevant numerical and string-labeled parcel in the monkey brain.
         </p>
       </div>
     </div>
@@ -173,8 +168,7 @@
           lookupTableIco8 = null,
           lookupTableIco16 = null,
           lookupTableIco32 = null,
-          lookupTableIco64 = null,
-          lookupTableIco128 = null,
+          lookupTableIcoME = null,
           dataMatrix = null,
           currentIcoSpace = null,
           ds128_aparc = null,
@@ -195,16 +189,14 @@
       // Determine ico space from data matrix length
       function determineIcoSpace(dataLength) {
         switch(dataLength) {
-          case 1210:
+          case 1244:
             return 'ico8';
-          case 4831:
+          case 4969:
             return 'ico16';
-          case 19341:
+          case 19862:
             return 'ico32';
-          case 77326:
-            return 'ico64';
-          case 309346:
-            return 'ico128';
+          case 190070:
+            return 'MEBRAIN';
           default:
             return null;
         }
@@ -219,10 +211,8 @@
             return lookupTableIco16;
           case 'ico32':
             return lookupTableIco32;
-          case 'ico64':
-            return lookupTableIco64;
-          case 'ico128':
-            return lookupTableIco128;
+          case 'MEBRAIN':
+            return lookupTableIcoME;
           default:
             return null;
         }
@@ -255,13 +245,9 @@
             lookupTableIco32 = data;
             console.log('Lookup table ico32 loaded');
           }),
-          $.getJSON('_static/lookup_table_ico64.json', data => {
-            lookupTableIco64 = data;
-            console.log('Lookup table ico64 loaded');
-          }),
-          $.getJSON('_static/lookup_table_ico128.json', data => {
-            lookupTableIco128 = data;
-            console.log('Lookup table ico128 loaded');
+          $.getJSON('_static/lookup_table_mebrain.json', data => {
+            lookupTableIcoME = data;
+            console.log('Lookup table MEBRAIN loaded');
           }),
           $.getJSON('_static/ds128_aparc.json', data => {
             ds128_aparc = data;
@@ -396,8 +382,7 @@
               const ico8   = lookupTableIco8[vertex];
               const ico16  = lookupTableIco16[vertex];
               const ico32  = lookupTableIco32[vertex];
-              const ico64  = lookupTableIco64[vertex];
-              const ico128 = lookupTableIco128[vertex];
+              const icoME  = lookupTableIcoME[vertex];
 
               // DS128 parcellation values
               const ds128_aparc_val       = ds128_aparc       ? ds128_aparc[vertex]       : 'N/A';
@@ -427,8 +412,7 @@
                     ico8: ${ico8}<br>
                     ico16: ${ico16}<br>
                     ico32: ${ico32}<br>
-                    ico64: ${ico64}<br>
-                    ico128: ${ico128}<br><br>
+                    MEBRAIN: ${icoME}<br><br>
 
                     <strong>ds128 parcellation (ico128):</strong><br>
                     aparc: ${ds128_aparc_val}<br>
