@@ -193,7 +193,7 @@
             return 'ico8';
           case 4969:
             return 'ico16';
-          case 19862:
+          case 19863:
             return 'ico32';
           case 190070:
             return 'MEBRAIN';
@@ -230,7 +230,9 @@
           $.getJSON('_static/mapping_data_ico128.json', data => {
             mappingData = data;
             originalHeight = mappingData.length;
+            console.log("Height:", originalHeight);
             originalWidth = mappingData[0].length;
+            console.log("Width:", originalWidth);
             console.log(`Mapping data loaded: (${originalWidth} x ${originalHeight})`);
           }),
           $.getJSON('_static/lookup_table_ico8.json', data => {
@@ -279,11 +281,14 @@
         });
       }
 
+      
       // Compute scaling factors between displayed image size and original data size
       function updateDisplaySize() {
         const rect = image[0].getBoundingClientRect();
         const displayWidth = rect.width;
+        console.log(`Display width: ${displayWidth}`);
         const displayHeight = rect.height;
+        console.log(`Display height: ${displayHeight}`);
         scaleX = originalWidth / displayWidth;
         scaleY = originalHeight / displayHeight;
         console.log(`Display size: ${displayWidth} x ${displayHeight}`);
@@ -297,11 +302,13 @@
           mouseX >= 0 && mouseX < originalWidth
         ) {
           const vertex = mappingData[mouseY][mouseX];
+          console.log(`Mapped vertex: ${vertex}`);
           return vertex !== -1 ? vertex : null;
         }
+        console.log('Mouse coordinates out of bounds');
         return null;
       }
-
+      
       // Handle user-uploaded image
       $('#imageUpload').on('change', function (e) {
         const file = e.target.files[0];
