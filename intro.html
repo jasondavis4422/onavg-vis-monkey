@@ -145,7 +145,7 @@
               <tr>
                 <td>MEBRAIN</td>
                 <td>0-98022</td>
-                <td>98023-196069</td>
+                <td>98023-196068</td>
               </tr>
             </tbody>
           </table>
@@ -227,7 +227,7 @@
       // Load all JSON files
       function loadData() {
         $.when(
-          $.getJSON('_static/mapping_data_ico128.json', data => {
+          $.getJSON('_static/mapping_data_icoME.json', data => {
             mappingData = data;
             originalHeight = mappingData.length;
             console.log("Height:", originalHeight);
@@ -235,19 +235,19 @@
             console.log("Width:", originalWidth);
             console.log(`Mapping data loaded: (${originalWidth} x ${originalHeight})`);
           }),
-          $.getJSON('_static/lookup_table_ico8.json', data => {
+          $.getJSON('_static/lookup_table_monkey_ico8.json', data => {
             lookupTableIco8 = data;
             console.log('Lookup table ico8 loaded');
           }),
-          $.getJSON('_static/lookup_table_ico16.json', data => {
+          $.getJSON('_static/lookup_table_monkey_ico16.json', data => {
             lookupTableIco16 = data;
             console.log('Lookup table ico16 loaded');
           }),
-          $.getJSON('_static/lookup_table_ico32.json', data => {
+          $.getJSON('_static/lookup_table_monkey_ico32.json', data => {
             lookupTableIco32 = data;
             console.log('Lookup table ico32 loaded');
           }),
-          $.getJSON('_static/lookup_table_MEBRAIN.json', data => {
+          $.getJSON('_static/lookup_table_monkey_MEBRAIN.json', data => {
             lookupTableIcoME = data;
             console.log('Lookup table MEBRAIN loaded');
           }),
