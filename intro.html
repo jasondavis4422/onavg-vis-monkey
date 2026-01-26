@@ -425,8 +425,8 @@
         }
 
         const [origX, origY] = coords;
-        const displayX = Math.round(origX / scaleX);
-        const displayY = Math.round(origY / scaleY);
+        const displayX = Math.round(origX * scaleX);
+        const displayY = Math.round(origY * scaleY);
         drawMarker(displayX, displayY);
       });
 
