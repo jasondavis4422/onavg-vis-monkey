@@ -227,11 +227,13 @@
       const name = $image.attr('src').split('/').pop();
       $fileName.text(`File: ${name}`);
     }
+
     function updateDisplaySize(){
       const rect = $image[0].getBoundingClientRect();
       const dispW = rect.width, dispH = rect.height;
       scaleX = originalWidth / dispW;
       scaleY = originalHeight / dispH;
+      console.log(scaleX, scaleY)
     }
     function getVertexFromMapping(mx, my){
       if (my>=0 && my<originalHeight && mx>=0 && mx<originalWidth){
@@ -241,6 +243,62 @@
       return null;
     }
 
+      // Load all JSON files
+      function loadData() {
+        $.when(
+          $.getJSON('_static/mapping_data_icoME.json', data => {
+            mappingData = data;
+            originalHeight = mappingData.length;
+            console.log("Height:", originalHeight);
+            originalWidth = mappingData[0].length;
+            console.log("Width:", originalWidth);
+            console.log(`Mapping data loaded: (${originalWidth} x ${originalHeight})`);
+          }),
+          $.getJSON('_static/lookup_table_monkey_ico8.json', data => {
+            lookupTableIco8 = data;
+            console.log('Lookup table ico8 loaded');
+          }),
+          $.getJSON('_static/lookup_table_monkey_ico16.json', data => {
+            lookupTableIco16 = data;
+            console.log('Lookup table ico16 loaded');
+          }),
+          $.getJSON('_static/lookup_table_monkey_ico32.json', data => {
+            lookupTableIco32 = data;
+            console.log('Lookup table ico32 loaded');
+          }),
+          $.getJSON('_static/lookup_table_monkey_icoME.json', data => {
+            lookupTableIcoME = data;
+            console.log('Lookup table MEBRAIN loaded');
+          }),
+          $.getJSON('_static/ds128_aparc.json', data => {
+            ds128_aparc = data;
+            console.log('DS128 aparc loaded');
+          }),
+          $.getJSON('_static/ds128_aparc.a2009s.json', data => {
+            ds128_aparc_a2009s = data;
+            console.log('DS128 aparc.a2009s loaded');
+          }),
+          $.getJSON('_static/ds128_aparc.DKTatlas.json', data => {
+            ds128_aparc_DKTatlas = data;
+            console.log('DS128 aparc.DKTatlas loaded');
+          }),
+          $.getJSON('_static/destrieux_labels.json', data => {
+            destrieux_aparc = data;
+            console.log('Destrieux labels loaded');
+          }),
+          $.getJSON('_static/dk_labels.json', data => {
+            dk_aparc = data;
+            console.log('DK labels loaded');
+          }),
+          $.getJSON('_static/dkt_labels.json', data => {
+            dkt_aparc = data;
+            console.log('DKT labels loaded');
+          })
+        ).done(() => {
+          console.log('All JSON files loaded successfully.');
+          updateDisplaySize();
+        });
+      }
     /* --------------------------------------------------------------
        NEW HELPERS – reverse lookup from vertex → (x,y)
        -------------------------------------------------------------- */
