@@ -330,6 +330,14 @@
     console.log(`The number ${vertex} is in the table data.`);
 } else {
     console.log(`The number ${vertex} is not found.`);
+
+    const index = table.indexOf(vertex);
+
+if (index !== -1) {
+    console.log(`The location (index) of ${vertex} is: ${index}`);
+} else {
+    console.log(`${vertex} was not found in the array.`);
+}
 }
       return table && vertex>=0 && vertex<table.length ? vertex : null;
     }
