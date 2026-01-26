@@ -98,13 +98,59 @@
         cursor: pointer;
         font-size: 14px;
       }
+      /* NEW: search panel */
+      #search-panel {
+        position: fixed;
+        top: 10px;
+        right: 120px;
+        background-color: rgba(0,0,0,0.8);
+        padding: 8px;
+        border-radius: 5px;
+        font-size: 14px;
+        z-index: 90;
+      }
+      #search-panel label,
+      #search-panel select,
+      #search-panel input,
+      #search-panel button {
+        margin-right: 6px;
+      }
+      /* NEW: vertex marker */
+      .vertex-marker {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        background: rgba(0,255,0,0.6);
+        border: 2px solid #0f0;
+        border-radius: 50%;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        z-index: 80;
+      }
     </style>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   </head>
+
   <body>
     <!-- Button to return to homepage -->
     <div id="homepage-button">
       <a href="instructions.html"><button>Instructions</button></a>
+    </div>
+
+    <!-- NEW: search panel for vertex lookup -->
+    <div id="search-panel">
+      <label for="ico-select">ICO space:</label>
+      <select id="ico-select">
+        <option value="ico8">ico8</option>
+        <option value="ico16">ico16</option>
+        <option value="ico32">ico32</option>
+        <option value="MEBRAIN">MEBRAIN</option>
+      </select>
+
+      <label for="vertex-input">Vertex index:</label>
+      <input type="number" id="vertex-input" min="0" placeholder="e.g. 123" />
+
+      <button id="show-vertex-btn">Show</button>
     </div>
 
     <div id="upload-container">
@@ -188,33 +234,23 @@
 
       // Determine ico space from data matrix length
       function determineIcoSpace(dataLength) {
-        switch(dataLength) {
-          case 1244:
-            return 'ico8';
-          case 4969:
-            return 'ico16';
-          case 19863:
-            return 'ico32';
-          case 190070:
-            return 'MEBRAIN';
-          default:
-            return null;
+        switch (dataLength) {
+          case 1244: return 'ico8';
+          case 4969: return 'ico16';
+          case 19863: return 'ico32';
+          case 190070: return 'MEBRAIN';
+          default: return null;
         }
       }
 
       // Get the appropriate lookup table based on ico space
       function getLookupTable(icoSpace) {
-        switch(icoSpace) {
-          case 'ico8':
-            return lookupTableIco8;
-          case 'ico16':
-            return lookupTableIco16;
-          case 'ico32':
-            return lookupTableIco32;
-          case 'MEBRAIN':
-            return lookupTableIcoME;
-          default:
-            return null;
+        switch (icoSpace) {
+          case 'ico8': return lookupTableIco8;
+          case 'ico16': return lookupTableIco16;
+          case 'ico32': return lookupTableIco32;
+          case 'MEBRAIN': return lookupTableIcoME;
+          default: return null;
         }
       }
 
@@ -230,50 +266,38 @@
           $.getJSON('_static/mapping_data_icoME.json', data => {
             mappingData = data;
             originalHeight = mappingData.length;
-            console.log("Height:", originalHeight);
             originalWidth = mappingData[0].length;
-            console.log("Width:", originalWidth);
-            console.log(`Mapping data loaded: (${originalWidth} x ${originalHeight})`);
+            console.log(`Mapping data loaded: ${originalWidth} x ${originalHeight}`);
           }),
           $.getJSON('_static/lookup_table_monkey_ico8.json', data => {
             lookupTableIco8 = data;
-            console.log('Lookup table ico8 loaded');
           }),
           $.getJSON('_static/lookup_table_monkey_ico16.json', data => {
             lookupTableIco16 = data;
-            console.log('Lookup table ico16 loaded');
           }),
           $.getJSON('_static/lookup_table_monkey_ico32.json', data => {
             lookupTableIco32 = data;
-            console.log('Lookup table ico32 loaded');
           }),
           $.getJSON('_static/lookup_table_monkey_icoME.json', data => {
             lookupTableIcoME = data;
-            console.log('Lookup table MEBRAIN loaded');
           }),
           $.getJSON('_static/ds128_aparc.json', data => {
             ds128_aparc = data;
-            console.log('DS128 aparc loaded');
           }),
           $.getJSON('_static/ds128_aparc.a2009s.json', data => {
             ds128_aparc_a2009s = data;
-            console.log('DS128 aparc.a2009s loaded');
           }),
           $.getJSON('_static/ds128_aparc.DKTatlas.json', data => {
             ds128_aparc_DKTatlas = data;
-            console.log('DS128 aparc.DKTatlas loaded');
           }),
           $.getJSON('_static/destrieux_labels.json', data => {
             destrieux_aparc = data;
-            console.log('Destrieux labels loaded');
           }),
           $.getJSON('_static/dk_labels.json', data => {
             dk_aparc = data;
-            console.log('DK labels loaded');
           }),
           $.getJSON('_static/dkt_labels.json', data => {
             dkt_aparc = data;
-            console.log('DKT labels loaded');
           })
         ).done(() => {
           console.log('All JSON files loaded successfully.');
@@ -281,18 +305,14 @@
         });
       }
 
-      
       // Compute scaling factors between displayed image size and original data size
       function updateDisplaySize() {
         const rect = image[0].getBoundingClientRect();
         const displayWidth = rect.width;
-        console.log(`Display width: ${displayWidth}`);
         const displayHeight = rect.height;
-        console.log(`Display height: ${displayHeight}`);
         scaleX = originalWidth / displayWidth;
         scaleY = originalHeight / displayHeight;
-        console.log(`Display size: ${displayWidth} x ${displayHeight}`);
-        console.log(`Scaling factors: scaleX=${scaleX}, scaleY=${scaleY}`);
+        console.log(`Scaling factors → scaleX=${scaleX}, scaleY=${scaleY}`);
       }
 
       // Return vertex index from mapping data (or null if background)
@@ -302,14 +322,45 @@
           mouseX >= 0 && mouseX < originalWidth
         ) {
           const vertex = mappingData[mouseY][mouseX];
-          console.log(`Mapped vertex: ${vertex}`);
           return vertex !== -1 ? vertex : null;
         }
-        console.log('Mouse coordinates out of bounds');
         return null;
       }
-      
-      // Handle user-uploaded image
+
+      // ---------- NEW HELPERS ----------
+      // Find the first pixel that contains the requested vertex
+      function getVertexCoordinates(vertex) {
+        for (let y = 0; y < originalHeight; y++) {
+          const row = mappingData[y];
+          for (let x = 0; x < originalWidth; x++) {
+            if (row[x] === vertex) {
+              return [x, y];
+            }
+          }
+        }
+        return null; // not found (e.g., background)
+      }
+
+      // Remove previous marker and draw a new one at display coordinates
+      function drawMarker(xDisplay, yDisplay) {
+        $('.vertex-marker').remove();
+        const $marker = $('<div class="vertex-marker"></div>');
+        const imgOffset = image.offset();
+        $marker.css({
+          left: imgOffset.left + xDisplay,
+          top: imgOffset.top + yDisplay
+        });
+        $('body').append($marker);
+      }
+
+      // Validate that the vertex exists for the selected ico space
+      function validateVertex(icoSpace, vertex) {
+        const table = getLookupTable(icoSpace);
+        return table && vertex >= 0 && vertex < table.length ? vertex : null;
+      }
+
+      // ---------- UI HANDLERS ----------
+      // Image upload
       $('#imageUpload').on('change', function (e) {
         const file = e.target.files[0];
         if (file) {
@@ -319,126 +370,126 @@
         }
       });
 
-      // Handle user-uploaded data matrix
+      // Data matrix upload
       $('#dataUpload').on('change', function (e) {
         const file = e.target.files[0];
         if (file) {
           fileNameInfo.text(`Data Matrix File: ${file.name}`);
-          console.log(`Loading data matrix from file: ${file.name}`);
-
           const reader = new FileReader();
-          reader.onload = function(event) {
+          reader.onload = function (event) {
             try {
-              const textContent = event.target.result;
-              
-              // Parse comma-separated values (handles both single and multi-line formats)
-              dataMatrix = textContent
-                .replace(/\n/g, '') // Remove newlines
-                .replace(/[\[\]]/g, '') // Remove brackets
+              const text = event.target.result;
+              dataMatrix = text
+                .replace(/\n/g, '')
+                .replace(/[\[\]]/g, '')
                 .split(',')
-                .map(value => value.trim())
-                .filter(value => value.length > 0)
-                .map(value => parseFloat(value));
-
-              console.log('Data matrix loaded:', dataMatrix);
-
+                .map(v => v.trim())
+                .filter(v => v.length > 0)
+                .map(v => parseFloat(v));
               const dataLength = dataMatrix.length;
-              console.log(`Data matrix loaded with length: ${dataLength}`);
-              
               currentIcoSpace = determineIcoSpace(dataLength);
-
-              if (currentIcoSpace) {
-                console.log(`Data matrix loaded in ${currentIcoSpace.toUpperCase()} space with ${dataLength} vertices`);
-              } else {
-                console.error(`Invalid data matrix length: ${dataLength}. Expected: 1210, 4831, 19341, 77326, or 309346`);
-                dataMatrix = null;
-                currentIcoSpace = null;
+              if (!currentIcoSpace) {
+                console.error('Unexpected data matrix length:', dataLength);
               }
-            } catch (error) {
-              console.error('Error parsing TXT file:', error);
-              dataMatrix = null;
-              currentIcoSpace = null;
+            } catch (err) {
+              console.error('Error reading TXT file:', err);
             }
           };
           reader.readAsText(file);
         }
       });
 
+      // Show vertex button
+      $('#show-vertex-btn').on('click', function () {
+        const icoSpace = $('#ico-select').val();
+        const vertexStr = $('#vertex-input').val();
+
+        if (vertexStr === '' || isNaN(vertexStr)) {
+          alert('Please enter a vertex number.');
+          return;
+        }
+
+        const vertex = parseInt(vertexStr, 10);
+        if (validateVertex(icoSpace, vertex) === null) {
+          alert(`Vertex ${vertex} is not valid for ${icoSpace}.`);
+          return;
+        }
+
+        const coords = getVertexCoordinates(vertex);
+        if (!coords) {
+          alert(`Vertex ${vertex} does not appear in the mapping image.`);
+          return;
+        }
+
+        const [origX, origY] = coords;
+        const displayX = Math.round(origX / scaleX);
+        const displayY = Math.round(origY / scaleY);
+        drawMarker(displayX, displayY);
+      });
+
+      // Mouse hover – existing functionality (unchanged except for commenting)
+      image.on('mousemove', function (e) {
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+          const mouseXOrig = Math.floor(x * scaleX);
+          const mouseYOrig = Math.floor(y * scaleY);
+          const vertex = getVertexFromMapping(mouseXOrig, mouseYOrig);
+
+          if (vertex !== null) {
+            const ico8 = lookupTableIco8[vertex];
+            const ico16 = lookupTableIco16[vertex];
+            const ico32 = lookupTableIco32[vertex];
+            const icoME = lookupTableIcoME[vertex];
+
+            const ds128_aparc_val = ds128_aparc ? ds128_aparc[vertex] : 'N/A';
+            const ds128_aparc_a2009s_val = ds128_aparc_a2009s ? ds128_aparc_a2009s[vertex] : 'N/A';
+            const ds128_aparc_DKTatlas_val = ds128_aparc_DKTatlas ? ds128_aparc_DKTatlas[vertex] : 'N/A';
+
+            const destrieux = destrieux_aparc ? destrieux_aparc[vertex] : 'N/A';
+            const dk = dk_aparc ? dk_aparc[vertex] : 'N/A';
+            const dkt = dkt_aparc ? dkt_aparc[vertex] : 'N/A';
+
+            let dataValue = 'N/A';
+            if (dataMatrix && currentIcoSpace) {
+              const lookupTable = getLookupTable(currentIcoSpace);
+              if (lookupTable) {
+                const dataIndex = lookupTable[vertex];
+                dataValue = dataMatrix[dataIndex] !== undefined ? dataMatrix[dataIndex] : 'N/A';
+              }
+            }
+
+            const html = `
+              <br><strong>onavg coordinate:</strong><br>
+              ico8: ${ico8}<br>
+              ico16: ${ico16}<br>
+              ico32: ${ico32}<br>
+              MEBRAIN: ${icoME}<br><br>
+
+              <br><strong>Data Matrix Value in ${currentIcoSpace} space:</strong><br>
+               value: ${dataValue}<br><br>
+            `;
+            vertexInfo.html(html);
+          } else {
+            vertexInfo.text('No vertex selected');
+          }
+        } else {
+          vertexInfo.text('No vertex selected');
+        }
+      });
+
+      image.on('mouseleave', () => {
+        vertexInfo.text('No vertex selected');
+      });
+
       // Initialise everything when the page is ready
       $(document).ready(() => {
         displayFileName();
         loadData();
-
         $(window).on('resize', updateDisplaySize);
-
-        // Mouse move over the brain image
-        image.on('mousemove', function (e) {
-          const rect = this.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-
-          if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
-            const mouseXOrig = Math.floor(x * scaleX);
-            const mouseYOrig = Math.floor(y * scaleY);
-            console.log(`Mouse: (${x.toFixed(1)}, ${y.toFixed(1)}) → Scaled: (${mouseXOrig}, ${mouseYOrig})`);
-
-            const vertex = getVertexFromMapping(mouseXOrig, mouseYOrig);
-
-            if (vertex !== null) {
-              // ICO lookup values
-              const ico8   = lookupTableIco8[vertex];
-              const ico16  = lookupTableIco16[vertex];
-              const ico32  = lookupTableIco32[vertex];
-              const icoME  = lookupTableIcoME[vertex];
-
-              // DS128 parcellation values
-              const ds128_aparc_val       = ds128_aparc       ? ds128_aparc[vertex]       : 'N/A';
-              const ds128_aparc_a2009s_val = ds128_aparc_a2009s ? ds128_aparc_a2009s[vertex] : 'N/A';
-              const ds128_aparc_DKTatlas_val = ds128_aparc_DKTatlas ? ds128_aparc_DKTatlas[vertex] : 'N/A';
-
-              // Anatomical labels
-              const destrieux = destrieux_aparc ? destrieux_aparc[vertex] : 'N/A';
-              const dk        = dk_aparc        ? dk_aparc[vertex]        : 'N/A';
-              const dkt       = dkt_aparc       ? dkt_aparc[vertex]       : 'N/A';
-
-              // Get data value based on current ico space
-                  let dataValue = 'N/A';
-                  if (dataMatrix && currentIcoSpace) {
-                    const lookupTable = getLookupTable(currentIcoSpace);
-                    console.log(`Using lookup table for ${currentIcoSpace} space`);
-                    if (lookupTable) {
-                      const dataIndex = lookupTable[vertex];
-                      dataValue = dataMatrix[dataIndex] !== undefined ? dataMatrix[dataIndex] : 'N/A';
-                      console.log(`Retrieved data value from ${currentIcoSpace} space at index ${dataIndex}: ${dataValue}`);
-                    }
-                  }
-
-      // Build and inject HTML
-                  const html = `
-                    <br><strong>onavg coordinate:</strong><br>
-                    ico8: ${ico8}<br>
-                    ico16: ${ico16}<br>
-                    ico32: ${ico32}<br>
-                    MEBRAIN: ${icoME}<br><br>
-
-                    <br><strong>Data Matrix Value in ${currentIcoSpace} space:</strong><br>
-                     value: ${dataValue}<br><br>
-
-                  `;
-                  vertexInfo.html(html);
-                } else {
-                  vertexInfo.text('No vertex selected');
-                }
-              } else {
-                vertexInfo.text('No vertex selected');
-              }
-            });
-
-            // Clear info when mouse leaves the image
-            image.on('mouseleave', () => {
-              vertexInfo.text('No vertex selected');
-            });
-          });
+      });
     </script>
   </body>
 </html>
