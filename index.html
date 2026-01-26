@@ -332,8 +332,10 @@
       function getVertexCoordinates(vertex) {
         for (let y = 0; y < originalHeight; y++) {
           const row = mappingData[y];
+          console.log(row)
           for (let x = 0; x < originalWidth; x++) {
             if (row[x] === vertex) {
+              console.log([x,y])
               return [x, y];
             }
           }
@@ -356,6 +358,7 @@
       // Validate that the vertex exists for the selected ico space
       function validateVertex(icoSpace, vertex) {
         const table = getLookupTable(icoSpace);
+        
         return table && vertex >= 0 && vertex < table.length ? vertex : null;
       }
 
