@@ -326,6 +326,8 @@
      */
     function validateVertex(icoSpace, vertex) {
       const table = getLookupTable(icoSpace);
+      console.log(table)
+      console.log(table.indexOf(vertex))
       if (table.includes(vertex)) {
         console.log(`The number ${vertex} is in the table data.`);
       } else {
