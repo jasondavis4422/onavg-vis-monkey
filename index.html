@@ -112,7 +112,7 @@
   border-radius: 50%;
   pointer-events: none;   /* let mouse events pass through */
   transform: translate(-50%, -50%); /* centre the circle on the coordinate */
-  z-index: 80;
+  z-index: 120;
 }
   </style>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -308,32 +308,38 @@
      * This is the only way to get pixel‑space coordinates because the
      * mapping table stores **vertex → pixel** information.
      */
-    function getVertexCoordinates(icoSpace, vertex){
+    /**
+ * Scan the whole mapping table and return every pixel that contains the
+ * requested vertex.  The function now returns an array of [x, y] pairs
+ * (or an empty array if the vertex is not present).
+ */
+    function getVertexCoordinates(icoSpace, vertex) {
       const table = getLookupTable(icoSpace);
-        console.log(table)
-        if (table.includes(vertex)) {
-          console.log(`The number ${vertex} is in the table data.`);
-        } else {
-          console.log(`The number ${vertex} is not found.`);
-        }
-        index = table.indexOf(vertex)
-        console.log(table.indexOf(vertex))
+      const index = table.indexOf(vertex);  
+      if (table.includes(vertex)) {
+        console.log(`The number ${vertex} is in the table data.`);
+      } else {
+        console.log(`The number ${vertex} is not found.`);
+      }  
+      if (index !== -1) {
+        console.log(`The location (index) of ${vertex} is: ${index}`);
+      } else {
+        console.log(`${vertex} was not found in the array.`);
+      }      // same as before
 
-        if (index !== -1) {
-          console.log(`The location (index) of ${vertex} is: ${index}`);
-        } else {
-          console.log(`${vertex} was not found in the array.`);
-        }
+      if (index === -1) return [];
+                        // vertex not in table
 
-      for (let y=0; y<originalHeight; y++){
+      const coords = [];                            // ← collect every match
+      for (let y = 0; y < originalHeight; y++) {
         const row = mappingData[y];
-        for (let x=0; x<originalWidth; x++){
-          if (row[x]===index){
-            return [x, y];          // original (full‑resolution) coords
+        for (let x = 0; x < originalWidth; x++) {
+          if (row[x] === index) {
+            coords.push([x, y]);              // store original (full‑res) coords
           }
         }
       }
-      return null;                 // vertex not present (e.g. background)
+      return coords;                                // ← may contain many items
     }
 
     /**
@@ -342,7 +348,6 @@
      */
     function validateVertex(icoSpace, vertex) {
         const table = getLookupTable(icoSpace);
-        console.log(table)
         if (table.includes(vertex)) {
           console.log(`The number ${vertex} is in the table data.`);
         } else {
@@ -360,19 +365,13 @@
         return table && vertex >= 0 && table.includes(vertex);
       }
 
-    /**
-     * Draw (or redraw) the green circle at the supplied screen coordinates.
-     */
     function drawMarker(xScreen, yScreen){
-      $('.vertex-marker').remove();            // delete any previous marker
-      const $m = $('<div class="vertex-marker"></div>');
-      const imgOffset = $image.offset();
-      $m.css({ left: imgOffset.left + xScreen,
-               top:  imgOffset.top  + yScreen });
-      $('body').append($m);
+        const $m = $('<div class="vertex-marker"></div>');
+        const imgOffset = $image.offset();
+        $m.css({ left: imgOffset.left + xScreen,
+                top:  imgOffset.top  + yScreen });
+        $('body').append($m);
     }
-
-    
 
     /* --------------------------------------------------------------
        UI – file uploads
@@ -416,36 +415,39 @@
     /* --------------------------------------------------------------
        UI – reverse‑lookup button
        -------------------------------------------------------------- */
-    $('#show-vertex-btn').on('click', ()=>{
-      const ico   = $('#ico-select').val();
-      const vStr  = $('#vertex-input').val();
+   $('#show-vertex-btn').on('click', ()=>{
+    const ico   = $('#ico-select').val();
+    const vStr  = $('#vertex-input').val();
 
-      // ---- basic validation -------------------------------------------------
-      if (vStr==='' || isNaN(vStr)){
+    // ---- basic validation -------------------------------------------------
+    if (vStr === '' || isNaN(vStr)){
         alert('Please type a numeric vertex index.');
         return;
-      }
-      const vertex = parseInt(vStr,10);
-      if (validateVertex(ico, vertex)===null){
+    }
+    const vertex = parseInt(vStr, 10);
+    if (!validateVertex(ico, vertex)){
         alert(`Vertex ${vertex} is not valid for ${ico}.`);
         return;
-      }
+    }
 
-      // ---- find original (x,y) in the mapping table ------------------------
-      const coords = getVertexCoordinates(ico, vertex);
-      if (!coords){
+    // ---- find **all** original (x,y) positions in the mapping table --------
+    const allCoords = getVertexCoordinates(ico, vertex);
+    if (allCoords.length === 0){
         alert(`Vertex ${vertex} does not appear in the mapping image.`);
         return;
-      }
-      const [origX, origY] = coords;
+    }
 
-      // ---- convert to screen coordinates (respect current zoom/size) -------
-      const screenX = Math.round(origX / scaleX);
-      const screenY = Math.round(origY / scaleY);
+    // ---- clear any previous markers ---------------------------------------
+    $('.vertex-marker').remove();
 
-      // ---- draw the green circle -------------------------------------------
-      drawMarker(screenX, screenY);
+    // ---- convert each to screen coordinates and draw a green dot ----------
+    allCoords.forEach(coord => {
+        const [origX, origY] = coord;
+        const screenX = Math.round(origX / scaleX);
+        const screenY = Math.round(origY / scaleY);
+        drawMarker(screenX, screenY);
     });
+});
 
     /* --------------------------------------------------------------
        Existing hover‑info (unchanged – still useful)
