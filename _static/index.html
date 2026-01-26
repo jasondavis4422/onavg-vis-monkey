@@ -324,23 +324,23 @@
      * Validate that the entered vertex exists in the chosen ICO space.
      * The lookup tables are arrays where the *index* is the vertex number.
      */
-    function validateVertex(icoSpace, vertex){
+    function validateVertex(icoSpace, vertex) {
       const table = getLookupTable(icoSpace);
       if (table.includes(vertex)) {
-    console.log(`The number ${vertex} is in the table data.`);
-} else {
-    console.log(`The number ${vertex} is not found.`);
+        console.log(`The number ${vertex} is in the table data.`);
+      } else {
+        console.log(`The number ${vertex} is not found.`);
 
-    const index = table.indexOf(vertex);
-    console.log(index)
+      const index = table.indexOf(vertex);
+      console.log(index)
 
-    if (index !== -1) {
-    console.log(`The location (index) of ${vertex} is: ${index}`);
-} else {
-    console.log(`${vertex} was not found in the array.`);
-}
-}
-      return table && vertex>=0 && vertex<table.length ? vertex : null;
+      if (index !== -1) {
+          console.log(`The location (index) of ${vertex} is: ${index}`);
+        } else {
+          console.log(`${vertex} was not found in the array.`);
+        }
+      }
+      return table && vertex >= 0 && vertex < table.length ? vertex : null;
     }
 
     /**
