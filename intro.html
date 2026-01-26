@@ -309,6 +309,7 @@
      * mapping table stores **vertex → pixel** information.
      */
     function getVertexCoordinates(vertex){
+      
       for (let y=0; y<originalHeight; y++){
         const row = mappingData[y];
         for (let x=0; x<originalWidth; x++){
@@ -325,25 +326,24 @@
      * The lookup tables are arrays where the *index* is the vertex number.
      */
     function validateVertex(icoSpace, vertex) {
-      const table = getLookupTable(icoSpace);
-      console.log(table)
-      console.log(table.indexOf(vertex))
-      if (table.includes(vertex)) {
-        console.log(`The number ${vertex} is in the table data.`);
-      } else {
-        console.log(`The number ${vertex} is not found.`);
+        const table = getLookupTable(icoSpace);
+        console.log(table)
+        if (table.includes(vertex)) {
+          console.log(`The number ${vertex} is in the table data.`);
+        } else {
+          console.log(`The number ${vertex} is not found.`);
+        }
+        index = table.indexOf(vertex)
+        console.log(table.indexOf(vertex))
 
-      const index = table.indexOf(vertex);
-      console.log(index)
-
-      if (index !== -1) {
+        if (index !== -1) {
           console.log(`The location (index) of ${vertex} is: ${index}`);
         } else {
           console.log(`${vertex} was not found in the array.`);
         }
+
+        return table && vertex >= 0 && vertex < table.length ? vertex : null;
       }
-      return table && vertex >= 0 && vertex < table.length ? vertex : null;
-    }
 
     /**
      * Draw (or redraw) the green circle at the supplied screen coordinates.
