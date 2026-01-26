@@ -308,12 +308,27 @@
      * This is the only way to get pixel‑space coordinates because the
      * mapping table stores **vertex → pixel** information.
      */
-    function getVertexCoordinates(vertex){
-      
+    function getVertexCoordinates(icoSpace, vertex){
+      const table = getLookupTable(icoSpace);
+        console.log(table)
+        if (table.includes(vertex)) {
+          console.log(`The number ${vertex} is in the table data.`);
+        } else {
+          console.log(`The number ${vertex} is not found.`);
+        }
+        index = table.indexOf(vertex)
+        console.log(table.indexOf(vertex))
+
+        if (index !== -1) {
+          console.log(`The location (index) of ${vertex} is: ${index}`);
+        } else {
+          console.log(`${vertex} was not found in the array.`);
+        }
+
       for (let y=0; y<originalHeight; y++){
         const row = mappingData[y];
         for (let x=0; x<originalWidth; x++){
-          if (row[x]===vertex){
+          if (row[x]===index){
             return [x, y];          // original (full‑resolution) coords
           }
         }
@@ -342,7 +357,7 @@
           console.log(`${vertex} was not found in the array.`);
         }
 
-        return table && vertex >= 0 && vertex < table.length ? vertex : null;
+        return table && vertex >= 0 && table.includes(vertex);
       }
 
     /**
@@ -417,7 +432,7 @@
       }
 
       // ---- find original (x,y) in the mapping table ------------------------
-      const coords = getVertexCoordinates(vertex);
+      const coords = getVertexCoordinates(ico, vertex);
       if (!coords){
         alert(`Vertex ${vertex} does not appear in the mapping image.`);
         return;
