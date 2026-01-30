@@ -102,6 +102,7 @@
       margin-right: 6px;
     }
     /* ---------- NEW MARKER: green X (2 × 2 px lines) ---------- */
+     /* MARKER – green “X” */
     .vertex-marker {
       position: absolute;
       width: 0;
@@ -109,27 +110,14 @@
       pointer-events: none;
       z-index: 120;
     }
-    .vertex-marker::before,
     .vertex-marker::after {
-      content: "";
+      content: "X";
+      color: rgba(0,255,0,0.9);
+      font-weight: bold;
+      font-size: 14px;          /* size of the X */
       position: absolute;
-      background: rgba(0,255,0,0.8);
-    }
-    /* first diagonal */
-    .vertex-marker::before {
-      width: 5px;               /* length of the line */
-      height: 2px;              /* thickness */
-      left: -2.5px;             /* centre on the click point */
-      top: -1px;
-      transform: rotate(45deg);
-    }
-    /* second diagonal */
-    .vertex-marker::after {
-      width: 5px;
-      height: 2px;
-      left: -2.5px;
-      top: -1px;
-      transform: rotate(-45deg);
+      left: -7px;               /* centre the X on the click point */
+      top: -7px;
     }
   </style>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
