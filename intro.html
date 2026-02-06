@@ -640,22 +640,22 @@
   clearShading();
 });
     
-      image.on('dragstart', function(e) {
-        if (shadingModeActive) {
-          e.preventDefault();
-          return false;
-        }
-      });
+    $image.on('dragstart', function(e) {
+      if (shadingModeActive) {
+        e.preventDefault();
+        return false;
+      }
+    });
 
-      image.on('mousedown', function(e) {
-        if (shadingModeActive) {
-          e.preventDefault();
-        }
-        if (!shadingModeActive) return;
-        isDrawing = true;
-      });
+    $image.on('mousedown', function(e) {
+      if (shadingModeActive) {
+        e.preventDefault();
+      }
+      if (!shadingModeActive) return;
+      isDrawing = true;
+    });
 
-    image.on('mousemove', function(e) {
+    $image.on('mousemove', function(e) {
       if (!shadingModeActive || !isDrawing) return;
 
       const rect = this.getBoundingClientRect();
@@ -669,7 +669,7 @@
       }
     });
 
-    image.on('mouseleave', function() {
+    $image.on('mouseleave', function() {
       isDrawing = false;
     });
 
