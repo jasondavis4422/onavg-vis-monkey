@@ -388,7 +388,7 @@
     }
     function drawMarker(xScreen, yScreen){
       const $m = $('<div class="vertex-marker"></div>');
-      const imgOffset = $image.offset();
+      const imgOffset = image.offset();
       $m.css({
         left: imgOffset.left + xScreen,
         top:  imgOffset.top  + yScreen
@@ -677,7 +677,7 @@
        Hover‑info – unchanged
        -------------------------------------------------------------- */
     image.on('mousemove', e=>{
-      const rect = $image[0].getBoundingClientRect();
+      const rect = image[0].getBoundingClientRect();
       const x = e.clientX - rect.left,
             y = e.clientY - rect.top;
       if (x<0||y<0||x>rect.width||y>rect.height){ $vertexInfo.text('No vertex selected');return; }
