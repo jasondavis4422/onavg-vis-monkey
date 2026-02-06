@@ -40,23 +40,26 @@
       max-height: 80%;
       object-fit: contain;
     }
-    #table-container {
-      position: fixed;
-      bottom: 150px;
-      left: 10px;
-      font-size: 12px;
-      background-color: rgba(0,0,0,0.8);
-      padding: 10px;
-      border-radius: 5px;
-      z-index: 40;
-    }
-    #table-container table { border-collapse: collapse; }
-    #table-container th,
-    #table-container td {
-      border: .5px solid white;
-      padding: 4px;
-      text-align: center;
-    }
+  #table-container {
+  position: fixed;           /* stay in place while scrolling */
+  bottom: 150px;             /* distance from the bottom of the viewport */
+  right: 10px;               /* ← change: anchor to the right edge */
+  font-size: 12px;
+  background-color: rgba(0,0,0,0.8);
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 40;
+}
+#table-container table {
+  border-collapse: collapse;
+}
+#table-container th,
+#table-container td {
+  border: 0.5px solid white;
+  padding: 4px;
+  text-align: center;
+}
+
     #info-container {
       position: fixed;
       top: 10px;
@@ -101,6 +104,57 @@
     #search-panel button {
       margin-right: 6px;
     }
+      #shading-panel {
+  position: fixed;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  background-color: rgba(0,0,0,0.8);
+  padding: 8px;
+  border-radius: 5px;
+  font-size: 14px;
+  z-index: 85;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 150px;
+}
+    #toggle-shading-btn {
+      padding: 8px 12px;
+      background-color: #555;
+      color: white;
+      border: 2px solid #999;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    #toggle-shading-btn.active {
+      background-color: #228b22;
+      border-color: #00ff00;
+      box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    }
+    #finish-shading-btn {
+      padding: 8px 12px;
+      background-color: #4682b4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    #shading-status {
+      color: #ccc;
+      font-size: 12px;
+      min-width: 150px;
+    }
+    #brain-image.shading-active {
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
     /* ---------- NEW MARKER: green X (2 × 2 px lines) ---------- */
      /* MARKER – green “X” */
     .vertex-marker {
@@ -119,6 +173,28 @@
       left: -7px;               /* centre the X on the click point */
       top: -7px;
     }
+
+      /* NEW: Shading overlay – semi-transparent green square */
+    .shading-overlay {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: rgba(0, 255, 0, 0.3);
+  border: 0.25px solid rgba(0, 255, 0, 0.6);
+  pointer-events: none;
+  z-index: 110;
+}
+
+#clear-shading-btn {
+  padding: 8px 12px;
+  background-color: #8b4513;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+   
   </style>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
@@ -128,6 +204,14 @@
   <div id="homepage-button">
     <a href="instructions.html"><button>Instructions</button></a>
   </div>
+
+<div id="shading-panel">
+  <button id="toggle-shading-btn">🖍️ Shade Region</button>
+  <span id="shading-status">Shading OFF | Vertices: 0</span>
+  <button id="finish-shading-btn">Finish & Export</button>
+  <button id="clear-shading-btn">Clear Shading</button>
+</div>
+
 
   <!-- Search panel -->
   <div id="search-panel">
@@ -174,8 +258,11 @@
     <div id="info-container">
       <p id="file-name"></p>
       <p id="vertex-info">
-        Hover over the image to see vertex information. Each vertex contains
-        the relevant numerical and string‑labeled parcel in the monkey brain.
+
+         Hover over the image to see vertex information. <br>
+        Each vertex contains the relevant numerical and <br>
+        string‑labeled parcel in the human brain.
+
       </p>
     </div>
   </div>
@@ -201,6 +288,12 @@
         originalHeight = 0,
         scaleX = 1,
         scaleY = 1;
+
+              // NEW: Shading mode variables
+    let shadingModeActive = false;
+    let isDrawing = false;
+    let shadedVerticesSet = new Set();
+    let shadedOverlays = [];
 
     const $image       = $('#brain-image');
     const $vertexInfo  = $('#vertex-info');
@@ -368,6 +461,216 @@
         const screenY = Math.round(origY / scaleY);
         drawMarker(screenX, screenY);
       });
+    });
+
+    // -----------------------------------------------------------------
+    // NEW: SHADING FEATURE FUNCTIONS
+    // -----------------------------------------------------------------
+    function toggleShadingMode() {
+      shadingModeActive = !shadingModeActive;
+      const $btn = $('#toggle-shading-btn');
+      
+      if (shadingModeActive) {
+        $btn.addClass('active');
+        image.addClass('shading-active');
+        updateShadingStatus();
+      } else {
+        $btn.removeClass('active');
+        image.removeClass('shading-active');
+        updateShadingStatus();
+      }
+    }
+
+    function updateShadingStatus() {
+      const status = shadingModeActive ? 'ON' : 'OFF';
+      const count = shadedVerticesSet.size;
+      $('#shading-status').text(`Shading ${status} | Vertices: ${count}`);
+    }
+
+    function recordShadedVertex(mouseXOrig, mouseYOrig) {
+      const vertex = getVertexFromMapping(mouseXOrig, mouseYOrig);
+      
+      if (vertex !== null && !shadedVerticesSet.has(vertex)) {
+        shadedVerticesSet.add(vertex);
+        
+        // Draw overlay
+        const rect = image[0].getBoundingClientRect();
+        const screenX = Math.round(mouseXOrig / scaleX);
+        const screenY = Math.round(mouseYOrig / scaleY);
+        
+        const $overlay = $('<div class="shading-overlay"></div>');
+        const imgOffset = image.offset();
+        $overlay.css({
+          left: imgOffset.left + screenX - 5,
+          top:  imgOffset.top  + screenY - 5
+        });
+        $('body').append($overlay);
+        shadedOverlays.push($overlay);
+        
+        updateShadingStatus();
+      }
+    }
+
+    function clearShading() {
+      shadedVerticesSet.clear();
+      shadedOverlays.forEach($overlay => $overlay.remove());
+      shadedOverlays = [];
+      updateShadingStatus();
+    }
+
+    function convertVertexToAllSpaces(mappingIndex) {
+      const result = {
+        ico8:   lookupTableIco8[mappingIndex],
+        ico16:  lookupTableIco16[mappingIndex],
+        ico32:  lookupTableIco32[mappingIndex],
+        icoME:  lookupTableIcoME[mappingIndex],
+      };
+      return result;
+    }
+
+    function convertVertexToAllParcellations(mappingIndex) {
+      const result = {
+        ds128_aparc:        ds128_aparc ? ds128_aparc[mappingIndex] : 'N/A',
+        ds128_aparc_a2009s: ds128_aparc_a2009s ? ds128_aparc_a2009s[mappingIndex] : 'N/A',
+        ds128_aparc_DKTatlas: ds128_aparc_DKTatlas ? ds128_aparc_DKTatlas[mappingIndex] : 'N/A',
+        destrieux:          destrieux_aparc ? destrieux_aparc[mappingIndex] : 'N/A',
+        dk:                 dk_aparc ? dk_aparc[mappingIndex] : 'N/A',
+        dkt:                dkt_aparc ? dkt_aparc[mappingIndex] : 'N/A'
+      };
+      return result;
+    }
+
+    function generateShadingReport() {
+      if (shadedVerticesSet.size === 0) {
+        alert('No vertices have been shaded. Please shade a region first.');
+        return null;
+      }
+
+      let reportText = '=== BRAIN VERTEX SHADING REPORT ===\n\n';
+      reportText += `Total vertices shaded: ${shadedVerticesSet.size}\n`;
+      reportText += `Timestamp: ${new Date().toISOString()}\n\n`;
+
+      // Sort vertices for consistent output
+      const sortedVertices = Array.from(shadedVerticesSet).sort((a, b) => a - b);
+
+      reportText += '=== ICO SPACE CONVERSIONS ===\n\n';
+      
+      const ico8Vertices = new Set();
+      const ico16Vertices = new Set();
+      const ico32Vertices = new Set();
+      const icoMEVertices = new Set();
+      
+
+      sortedVertices.forEach(mappingIdx => {
+        const spaces = convertVertexToAllSpaces(mappingIdx);
+        ico8Vertices.add(spaces.ico8);
+        ico16Vertices.add(spaces.ico16);
+        ico32Vertices.add(spaces.ico32);
+        icoMEVertices.add(spaces.icoME);
+      });
+
+      reportText += `ICO8 Vertices (${ico8Vertices.size}):\n`;
+      reportText += Array.from(ico8Vertices).sort((a, b) => a - b).join(', ') + '\n\n';
+
+      reportText += `ICO16 Vertices (${ico16Vertices.size}):\n`;
+      reportText += Array.from(ico16Vertices).sort((a, b) => a - b).join(', ') + '\n\n';
+
+      reportText += `ICO32 Vertices (${ico32Vertices.size}):\n`;
+      reportText += Array.from(ico32Vertices).sort((a, b) => a - b).join(', ') + '\n\n';
+
+      reportText += `ICOME Vertices (${icoMEVertices.size}):\n`;
+      reportText += Array.from(icoMEVertices).sort((a, b) => a - b).join(', ') + '\n\n';
+
+      reportText += '=== DETAILED VERTEX MAPPING ===\n\n';
+      reportText += 'MappingIndex | ICO8 | ICO16 | ICO32 | ICOME\n';
+      reportText += '-'.repeat(150) + '\n';
+
+      sortedVertices.forEach(mappingIdx => {
+        const spaces = convertVertexToAllSpaces(mappingIdx);
+        const parcs = convertVertexToAllParcellations(mappingIdx);
+        reportText += `${mappingIdx} | ${spaces.ico8} | ${spaces.ico16} | ${spaces.ico32} | ${spaces.icoME} | \n`;
+      });
+
+      return reportText;
+    }
+
+    function downloadTextFile(text, filename) {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function finishShadingAndExport() {
+      const report = generateShadingReport();
+      if (report) {
+        const timestamp = new Date().toISOString().slice(0, 10);
+        const filename = `brain_shading_report_${timestamp}.txt`;
+        downloadTextFile(report, filename);
+        
+        // Optional: clear shading after export
+        const userConfirm = confirm('Export complete! Clear shading for a new selection?');
+        if (userConfirm) {
+          clearShading();
+        }
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // NEW: SHADING MODE EVENT HANDLERS
+    // -----------------------------------------------------------------
+    $('#toggle-shading-btn').on('click', function() {
+      toggleShadingMode();
+    });
+
+    $('#finish-shading-btn').on('click', function() {
+      if (shadedVerticesSet.size === 0) {
+        alert('No vertices shaded. Please shade a region first.');
+        return;
+      }
+      finishShadingAndExport();
+    });
+
+    $('#clear-shading-btn').on('click', function() {
+  clearShading();
+});
+    
+      image.on('dragstart', function(e) {
+        if (shadingModeActive) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      image.on('mousedown', function(e) {
+        if (shadingModeActive) {
+          e.preventDefault();
+        }
+        if (!shadingModeActive) return;
+        isDrawing = true;
+      });
+
+    image.on('mousemove', function(e) {
+      if (!shadingModeActive || !isDrawing) return;
+
+      const rect = this.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+        const mouseXOrig = Math.floor(x * scaleX);
+        const mouseYOrig = Math.floor(y * scaleY);
+        recordShadedVertex(mouseXOrig, mouseYOrig);
+      }
+    });
+
+    image.on('mouseleave', function() {
+      isDrawing = false;
     });
 
     /* --------------------------------------------------------------
