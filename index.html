@@ -295,9 +295,9 @@
     let shadedVerticesSet = new Set();
     let shadedOverlays = [];
 
-    const $image       = $('#brain-image');
-    const $vertexInfo  = $('#vertex-info');
-    const $fileName    = $('#file-name');
+    const image       = $('#brain-image');
+    const vertexInfo  = $('#vertex-info');
+    const fileName    = $('#file-name');
 
     /* --------------------------------------------------------------
        Utility functions – unchanged
@@ -321,11 +321,11 @@
       }
     }
     function displayFileName(){
-      const name = $image.attr('src').split('/').pop();
-      $fileName.text(`File: ${name}`);
+      const name = image.attr('src').split('/').pop();
+      fileName.text(`File: ${name}`);
     }
     function updateDisplaySize(){
-      const rect = $image[0].getBoundingClientRect();
+      const rect = image[0].getBoundingClientRect();
       const dispW = rect.width, dispH = rect.height;
       scaleX = originalWidth / dispW;
       scaleY = originalHeight / dispH;
@@ -402,15 +402,15 @@
     $('#imageUpload').on('change', e=>{
       const file = e.target.files[0];
       if (file){
-        $fileName.text(`File: ${file.name}`);
+        fileName.text(`File: ${file.name}`);
         const url = URL.createObjectURL(file);
-        $image.attr('src',url).on('load', updateDisplaySize);
+        image.attr('src',url).on('load', updateDisplaySize);
       }
     });
     $('#dataUpload').on('change', e=>{
       const file = e.target.files[0];
       if (file){
-        $fileName.text(`Data Matrix File: ${file.name}`);
+        fileName.text(`Data Matrix File: ${file.name}`);
         const reader = new FileReader();
         reader.onload = ev=>{
           try{
@@ -640,14 +640,14 @@
   clearShading();
 });
     
-    $image.on('dragstart', function(e) {
+    image.on('dragstart', function(e) {
       if (shadingModeActive) {
         e.preventDefault();
         return false;
       }
     });
 
-    $image.on('mousedown', function(e) {
+    image.on('mousedown', function(e) {
       if (shadingModeActive) {
         e.preventDefault();
       }
@@ -655,7 +655,7 @@
       isDrawing = true;
     });
 
-    $image.on('mousemove', function(e) {
+    image.on('mousemove', function(e) {
       if (!shadingModeActive || !isDrawing) return;
 
       const rect = this.getBoundingClientRect();
@@ -669,7 +669,7 @@
       }
     });
 
-    $image.on('mouseleave', function() {
+    image.on('mouseleave', function() {
       isDrawing = false;
     });
 
@@ -687,7 +687,7 @@
       const vertex = getVertexFromMapping(mx,my);
 
       if (vertex===null){
-        $vertexInfo.text('No vertex selected');
+        vertexInfo.text('No vertex selected');
         return;
       }
 
@@ -714,9 +714,9 @@
         <strong>Data Matrix Value in ${currentIcoSpace||'—'} space:</strong><br>
         value: ${dataValue}<br><br>
       `;
-      $vertexInfo.html(html);
+      vertexInfo.html(html);
     });
-    $image.on('mouseleave',()=>{ $vertexInfo.text('No vertex selected'); });
+    image.on('mouseleave',()=>{ vertexInfo.text('No vertex selected'); });
 
     /* --------------------------------------------------------------
        Initialise everything
