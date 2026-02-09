@@ -166,13 +166,13 @@
 .vertex-marker::before {
   content: "";
   position: absolute;
-  width: 24px;
-  height: 24px;
+  width: 16px;        /* reduced from 24px */
+  height: 16px;       /* reduced from 24px */
   border: 2px solid rgba(0,255,0,0.8);
   border-radius: 50%;
-  left: -12px;              /* centre circle on click point */
-  top: -12px;
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+  left: -8px;         /* half of width, negative */
+  top: -8px;          /* half of height, negative */
+  box-shadow: 0 0 6px rgba(0, 255, 0, 0.5);
 }
 .vertex-marker::after {
   content: "X";
