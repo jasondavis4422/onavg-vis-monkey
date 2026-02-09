@@ -155,24 +155,35 @@
   -webkit-user-drag: none;
   -webkit-touch-callout: none;
 }
-    /* ---------- NEW MARKER: green X (2 × 2 px lines) ---------- */
-     /* MARKER – green “X” */
-    .vertex-marker {
-      position: absolute;
-      width: 0;
-      height: 0;
-      pointer-events: none;
-      z-index: 120;
-    }
-    .vertex-marker::after {
-      content: "X";
-      color: rgba(0,255,0,0.9);
-      font-weight: bold;
-      font-size: 14px;          /* size of the X */
-      position: absolute;
-      left: -7px;               /* centre the X on the click point */
-      top: -7px;
-    }
+   /* MARKER – green "X" with circle */
+.vertex-marker {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 120;
+}
+.vertex-marker::before {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(0,255,0,0.8);
+  border-radius: 50%;
+  left: -12px;              /* centre circle on click point */
+  top: -12px;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+}
+.vertex-marker::after {
+  content: "X";
+  color: rgba(0,255,0,0.9);
+  font-weight: bold;
+  font-size: 14px;          /* size of the X */
+  position: absolute;
+  left: -7px;               /* centre the X on the click point */
+  top: -7px;
+  z-index: 1;
+}
 
       /* NEW: Shading overlay – semi-transparent green square */
     .shading-overlay {
