@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,21 +14,24 @@
       background-color: black;
       color: white;
     }
+
     #page-container {
       display: flex;
       flex-direction: column;
       height: 100%;
     }
+
     #upload-container {
       position: fixed;
       bottom: 10px;
       left: 10px;
-      background-color: rgba(0,0,0,0.8);
+      background-color: rgba(0, 0, 0, 0.8);
       padding: 10px;
       border-radius: 5px;
       font-size: 14px;
       z-index: 50;
     }
+
     #main-content {
       display: flex;
       flex: 1;
@@ -35,36 +39,43 @@
       justify-content: center;
       gap: 20px;
     }
+
     #brain-image {
       max-width: 80%;
       max-height: 80%;
       object-fit: contain;
     }
-  #table-container {
-  position: fixed;           /* stay in place while scrolling */
-  bottom: 150px;             /* distance from the bottom of the viewport */
-  right: 10px;               /* ← change: anchor to the right edge */
-  font-size: 12px;
-  background-color: rgba(0,0,0,0.8);
-  padding: 10px;
-  border-radius: 5px;
-  z-index: 40;
-}
-#table-container table {
-  border-collapse: collapse;
-}
-#table-container th,
-#table-container td {
-  border: 0.5px solid white;
-  padding: 4px;
-  text-align: center;
-}
+
+    #table-container {
+      position: fixed;
+      /* stay in place while scrolling */
+      bottom: 150px;
+      /* distance from the bottom of the viewport */
+      right: 10px;
+      /* ← change: anchor to the right edge */
+      font-size: 12px;
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 40;
+    }
+
+    #table-container table {
+      border-collapse: collapse;
+    }
+
+    #table-container th,
+    #table-container td {
+      border: 0.5px solid white;
+      padding: 4px;
+      text-align: center;
+    }
 
     #info-container {
       position: fixed;
       top: 10px;
       left: 10px;
-      background-color: rgba(0,0,0,0.8);
+      background-color: rgba(0, 0, 0, 0.8);
       padding: 10px;
       border-radius: 5px;
       font-size: 14px;
@@ -72,54 +83,60 @@
       overflow-y: auto;
       z-index: 60;
     }
+
     #homepage-button {
       position: fixed;
       top: 10px;
       right: 10px;
       z-index: 100;
     }
+
     #homepage-button button {
       padding: 8px 12px;
-      background:#4682b4;
-      color:#fff;
-      border:none;
-      border-radius:4px;
-      cursor:pointer;
-      font-size:14px;
+      background: #4682b4;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
     }
+
     /* ----- search panel ----- */
     #search-panel {
       position: fixed;
       top: 10px;
       right: 120px;
-      background-color: rgba(0,0,0,0.8);
+      background-color: rgba(0, 0, 0, 0.8);
       padding: 8px;
       border-radius: 5px;
-      font-size:14px;
+      font-size: 14px;
       z-index: 90;
     }
+
     #search-panel label,
     #search-panel select,
     #search-panel input,
     #search-panel button {
       margin-right: 6px;
     }
-      #shading-panel {
-  position: fixed;
-  top: 50%;
-  left: 10px;
-  transform: translateY(-50%);
-  background-color: rgba(0,0,0,0.8);
-  padding: 8px;
-  border-radius: 5px;
-  font-size: 14px;
-  z-index: 85;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-direction: column;
-  margin-top: 150px;
-}
+
+    #shading-panel {
+      position: fixed;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      padding: 8px;
+      border-radius: 5px;
+      font-size: 14px;
+      z-index: 85;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-direction: column;
+      margin-top: 150px;
+    }
+
     #toggle-shading-btn {
       padding: 8px 12px;
       background-color: #555;
@@ -130,11 +147,13 @@
       font-size: 14px;
       transition: all 0.3s ease;
     }
+
     #toggle-shading-btn.active {
       background-color: #228b22;
       border-color: #00ff00;
       box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
     }
+
     #finish-shading-btn {
       padding: 8px 12px;
       background-color: #4682b4;
@@ -144,71 +163,68 @@
       cursor: pointer;
       font-size: 14px;
     }
+
     #shading-status {
       color: #ccc;
       font-size: 12px;
       min-width: 150px;
     }
+
     #brain-image.shading-active {
-  cursor: crosshair;
-  user-select: none;
-  -webkit-user-drag: none;
-  -webkit-touch-callout: none;
-}
-   /* MARKER – green "X" with circle */
-.vertex-marker {
-  position: absolute;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-  z-index: 120;
-}
-.vertex-marker::before {
-  content: "";
-  position: absolute;
-  width: 16px;        /* reduced from 24px */
-  height: 16px;       /* reduced from 24px */
-  border: 2px solid rgba(0,255,0,0.8);
-  border-radius: 50%;
-  left: -8px;         /* half of width, negative */
-  top: -8px;          /* half of height, negative */
-  box-shadow: 0 0 6px rgba(0, 255, 0, 0.5);
-}
-.vertex-marker::after {
-  content: "X";
-  color: rgba(0,255,0,0.9);
-  font-weight: bold;
-  font-size: 14px;          /* size of the X */
-  position: absolute;
-  left: -7px;               /* centre the X on the click point */
-  top: -7px;
-  z-index: 1;
-}
+      cursor: crosshair;
+      user-select: none;
+      -webkit-user-drag: none;
+      -webkit-touch-callout: none;
+    }
 
-      /* NEW: Shading overlay – semi-transparent green square */
+    /* MARKER – green "X" */
+    .vertex-marker {
+      position: absolute;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+      z-index: 120;
+    }
+
+    .vertex-marker::after {
+      content: "X";
+      color: rgba(0, 255, 0, 0.9);
+      font-weight: bold;
+      font-size: 14px;
+      /* size of the X */
+      position: absolute;
+      left: -7px;
+      /* centre the X on the click point */
+      top: -7px;
+    }
+
+    /* Shading overlay – semi-transparent green square */
     .shading-overlay {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background-color: rgba(0, 255, 0, 0.3);
-  border: 0.25px solid rgba(0, 255, 0, 0.6);
-  pointer-events: none;
-  z-index: 110;
-}
+      position: absolute;
+      width: 4px;
+      /* was 10px   → thinner */
+      height: 4px;
+      /* was 10px   → thinner */
+      background-color: rgba(0, 255, 0, 0.3);
+      border: 0.25px solid rgba(0, 255, 0, 0.6);
+      /* keep or reduce if desired */
+      pointer-events: none;
+      z-index: 110;
+    }
 
-#clear-shading-btn {
-  padding: 8px 12px;
-  background-color: #8b4513;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-   
+    #clear-shading-btn {
+      padding: 8px 12px;
+      background-color: #8b4513;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
   </style>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
+
 <body>
 
   <!-- Home‑page link -->
@@ -216,12 +232,12 @@
     <a href="instructions.html"><button>Instructions</button></a>
   </div>
 
-<div id="shading-panel">
-  <button id="toggle-shading-btn">🖍️ Shade Region</button>
-  <span id="shading-status">Shading OFF | Vertices: 0</span>
-  <button id="finish-shading-btn">Finish & Export</button>
-  <button id="clear-shading-btn">Clear Shading</button>
-</div>
+  <div id="shading-panel">
+    <button id="toggle-shading-btn">🖍️ Shade Region</button>
+    <span id="shading-status">Shading OFF | Vertices: 0</span>
+    <button id="finish-shading-btn">Finish & Export</button>
+    <button id="clear-shading-btn">Clear Shading</button>
+  </div>
 
 
   <!-- Search panel -->
@@ -253,13 +269,33 @@
       <div id="table-container">
         <table>
           <thead>
-            <tr><th></th><th>LH</th><th>RH</th></tr>
+            <tr>
+              <th></th>
+              <th>LH</th>
+              <th>RH</th>
+            </tr>
           </thead>
           <tbody>
-            <tr><td>ico8</td><td>0-622</td><td>623-1243</td></tr>
-            <tr><td>ico16</td><td>0-2484</td><td>2485-4968</td></tr>
-            <tr><td>ico32</td><td>0-9929</td><td>9930-19862</td></tr>
-            <tr><td>MEBRAIN</td><td>0-98022</td><td>98023-196069</td></tr>
+            <tr>
+              <td>ico8</td>
+              <td>0-622</td>
+              <td>623-1243</td>
+            </tr>
+            <tr>
+              <td>ico16</td>
+              <td>0-2484</td>
+              <td>2485-4968</td>
+            </tr>
+            <tr>
+              <td>ico32</td>
+              <td>0-9929</td>
+              <td>9930-19862</td>
+            </tr>
+            <tr>
+              <td>MEBRAIN</td>
+              <td>0-98022</td>
+              <td>98023-196069</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -270,7 +306,7 @@
       <p id="file-name"></p>
       <p id="vertex-info">
 
-         Hover over the image to see vertex information. <br>
+        Hover over the image to see vertex information. <br>
         Each vertex contains the relevant numerical and <br>
         string‑labeled parcel in the human brain.
 
@@ -283,68 +319,68 @@
        GLOBAL VARIABLES – unchanged
        ============================================================== */
     let mappingData = null,
-        lookupTableIco8 = null,
-        lookupTableIco16 = null,
-        lookupTableIco32 = null,
-        lookupTableIcoME = null,
-        dataMatrix = null,
-        currentIcoSpace = null,
-        ds128_aparc = null,
-        ds128_aparc_a2009s = null,
-        ds128_aparc_DKTatlas = null,
-        destrieux_aparc = null,
-        dk_aparc = null,
-        dkt_aparc = null,
-        originalWidth = 0,
-        originalHeight = 0,
-        scaleX = 1,
-        scaleY = 1;
+      lookupTableIco8 = null,
+      lookupTableIco16 = null,
+      lookupTableIco32 = null,
+      lookupTableIcoME = null,
+      dataMatrix = null,
+      currentIcoSpace = null,
+      ds128_aparc = null,
+      ds128_aparc_a2009s = null,
+      ds128_aparc_DKTatlas = null,
+      destrieux_aparc = null,
+      dk_aparc = null,
+      dkt_aparc = null,
+      originalWidth = 0,
+      originalHeight = 0,
+      scaleX = 1,
+      scaleY = 1;
 
-              // NEW: Shading mode variables
+    // NEW: Shading mode variables
     let shadingModeActive = false;
     let isDrawing = false;
     let shadedVerticesSet = new Set();
     let shadedOverlays = [];
 
-    const image       = $('#brain-image');
-    const vertexInfo  = $('#vertex-info');
-    const fileName    = $('#file-name');
+    const image = $('#brain-image');
+    const vertexInfo = $('#vertex-info');
+    const fileName = $('#file-name');
 
     /* --------------------------------------------------------------
        Utility functions – unchanged
        -------------------------------------------------------------- */
     function determineIcoSpace(len) {
-      switch(len){
-        case 1244:   return 'ico8';
-        case 4969:   return 'ico16';
-        case 19863:  return 'ico32';
+      switch (len) {
+        case 1244: return 'ico8';
+        case 4969: return 'ico16';
+        case 19863: return 'ico32';
         case 190070: return 'MEBRAIN';
-        default:     return null;
+        default: return null;
       }
     }
-    function getLookupTable(ico){
-      switch(ico){
-        case 'ico8':    return lookupTableIco8;
-        case 'ico16':   return lookupTableIco16;
-        case 'ico32':   return lookupTableIco32;
+    function getLookupTable(ico) {
+      switch (ico) {
+        case 'ico8': return lookupTableIco8;
+        case 'ico16': return lookupTableIco16;
+        case 'ico32': return lookupTableIco32;
         case 'MEBRAIN': return lookupTableIcoME;
-        default:        return null;
+        default: return null;
       }
     }
-    function displayFileName(){
+    function displayFileName() {
       const name = image.attr('src').split('/').pop();
       fileName.text(`File: ${name}`);
     }
-    function updateDisplaySize(){
+    function updateDisplaySize() {
       const rect = image[0].getBoundingClientRect();
       const dispW = rect.width, dispH = rect.height;
       scaleX = originalWidth / dispW;
       scaleY = originalHeight / dispH;
     }
-    function getVertexFromMapping(mx, my){
-      if (my>=0 && my<originalHeight && mx>=0 && mx<originalWidth){
+    function getVertexFromMapping(mx, my) {
+      if (my >= 0 && my < originalHeight && mx >= 0 && mx < originalWidth) {
         const v = mappingData[my][mx];
-        return v!==-1 ? v : null;
+        return v !== -1 ? v : null;
       }
       return null;
     }
@@ -397,12 +433,12 @@
       const table = getLookupTable(icoSpace);
       return table && vertex >= 0 && table.includes(vertex);
     }
-    function drawMarker(xScreen, yScreen){
+    function drawMarker(xScreen, yScreen) {
       const $m = $('<div class="vertex-marker"></div>');
       const imgOffset = image.offset();
       $m.css({
         left: imgOffset.left + xScreen,
-        top:  imgOffset.top  + yScreen
+        top: imgOffset.top + yScreen
       });
       $('body').append($m);
     }
@@ -410,32 +446,32 @@
     /* --------------------------------------------------------------
        UI – file uploads – unchanged
        -------------------------------------------------------------- */
-    $('#imageUpload').on('change', e=>{
+    $('#imageUpload').on('change', e => {
       const file = e.target.files[0];
-      if (file){
+      if (file) {
         fileName.text(`File: ${file.name}`);
         const url = URL.createObjectURL(file);
-        image.attr('src',url).on('load', updateDisplaySize);
+        image.attr('src', url).on('load', updateDisplaySize);
       }
     });
-    $('#dataUpload').on('change', e=>{
+    $('#dataUpload').on('change', e => {
       const file = e.target.files[0];
-      if (file){
+      if (file) {
         fileName.text(`Data Matrix File: ${file.name}`);
         const reader = new FileReader();
-        reader.onload = ev=>{
-          try{
+        reader.onload = ev => {
+          try {
             const txt = ev.target.result;
-            dataMatrix = txt.replace(/\n/g,'')
-                            .replace(/[\[\]]/g,'')
-                            .split(',')
-                            .map(v=>v.trim())
-                            .filter(v=>v.length>0)
-                            .map(v=>parseFloat(v));
+            dataMatrix = txt.replace(/\n/g, '')
+              .replace(/[\[\]]/g, '')
+              .split(',')
+              .map(v => v.trim())
+              .filter(v => v.length > 0)
+              .map(v => parseFloat(v));
             const len = dataMatrix.length;
             currentIcoSpace = determineIcoSpace(len);
-          }catch(err){
-            console.error('Error parsing TXT file:',err);
+          } catch (err) {
+            console.error('Error parsing TXT file:', err);
           }
         };
         reader.readAsText(file);
@@ -443,24 +479,24 @@
     });
 
     /* --------------------------------------------------------------
-       UI – reverse‑lookup button (numeric vertex) – unchanged
+       UI – reverse‑lookup button (numeric vertex)
        -------------------------------------------------------------- */
-    $('#show-vertex-btn').on('click', ()=>{
-      const ico   = $('#ico-select').val();
-      const vStr  = $('#vertex-input').val();
+    $('#show-vertex-btn').on('click', () => {
+      const ico = $('#ico-select').val();
+      const vStr = $('#vertex-input').val();
 
-      if (vStr === '' || isNaN(vStr)){
+      if (vStr === '' || isNaN(vStr)) {
         alert('Please type a numeric vertex index.');
         return;
       }
       const vertex = parseInt(vStr, 10);
-      if (!validateVertex(ico, vertex)){
+      if (!validateVertex(ico, vertex)) {
         alert(`Vertex ${vertex} is not valid for ${ico}.`);
         return;
       }
 
       const allCoords = getVertexCoordinates(ico, vertex);
-      if (allCoords.length === 0){
+      if (allCoords.length === 0) {
         alert(`Vertex ${vertex} does not appear in the mapping image.`);
         return;
       }
@@ -475,12 +511,12 @@
     });
 
     // -----------------------------------------------------------------
-    // NEW: SHADING FEATURE FUNCTIONS
+    // SHADING FEATURE FUNCTIONS
     // -----------------------------------------------------------------
     function toggleShadingMode() {
       shadingModeActive = !shadingModeActive;
       const $btn = $('#toggle-shading-btn');
-      
+
       if (shadingModeActive) {
         $btn.addClass('active');
         image.addClass('shading-active');
@@ -500,24 +536,25 @@
 
     function recordShadedVertex(mouseXOrig, mouseYOrig) {
       const vertex = getVertexFromMapping(mouseXOrig, mouseYOrig);
-      
+
       if (vertex !== null && !shadedVerticesSet.has(vertex)) {
         shadedVerticesSet.add(vertex);
-        
+
         // Draw overlay
         const rect = image[0].getBoundingClientRect();
         const screenX = Math.round(mouseXOrig / scaleX);
         const screenY = Math.round(mouseYOrig / scaleY);
-        
+
         const $overlay = $('<div class="shading-overlay"></div>');
         const imgOffset = image.offset();
+        // inside recordShadedVertex()
         $overlay.css({
-          left: imgOffset.left + screenX - 5,
-          top:  imgOffset.top  + screenY - 5
+          left: imgOffset.left + screenX - 2,   // 2 = 4/2
+          top: imgOffset.top + screenY - 2
         });
         $('body').append($overlay);
         shadedOverlays.push($overlay);
-        
+
         updateShadingStatus();
       }
     }
@@ -531,22 +568,22 @@
 
     function convertVertexToAllSpaces(mappingIndex) {
       const result = {
-        ico8:   lookupTableIco8[mappingIndex],
-        ico16:  lookupTableIco16[mappingIndex],
-        ico32:  lookupTableIco32[mappingIndex],
-        icoME:  lookupTableIcoME[mappingIndex],
+        ico8: lookupTableIco8[mappingIndex],
+        ico16: lookupTableIco16[mappingIndex],
+        ico32: lookupTableIco32[mappingIndex],
+        icoME: lookupTableIcoME[mappingIndex],
       };
       return result;
     }
 
     function convertVertexToAllParcellations(mappingIndex) {
       const result = {
-        ds128_aparc:        ds128_aparc ? ds128_aparc[mappingIndex] : 'N/A',
+        ds128_aparc: ds128_aparc ? ds128_aparc[mappingIndex] : 'N/A',
         ds128_aparc_a2009s: ds128_aparc_a2009s ? ds128_aparc_a2009s[mappingIndex] : 'N/A',
         ds128_aparc_DKTatlas: ds128_aparc_DKTatlas ? ds128_aparc_DKTatlas[mappingIndex] : 'N/A',
-        destrieux:          destrieux_aparc ? destrieux_aparc[mappingIndex] : 'N/A',
-        dk:                 dk_aparc ? dk_aparc[mappingIndex] : 'N/A',
-        dkt:                dkt_aparc ? dkt_aparc[mappingIndex] : 'N/A'
+        destrieux: destrieux_aparc ? destrieux_aparc[mappingIndex] : 'N/A',
+        dk: dk_aparc ? dk_aparc[mappingIndex] : 'N/A',
+        dkt: dkt_aparc ? dkt_aparc[mappingIndex] : 'N/A'
       };
       return result;
     }
@@ -565,12 +602,12 @@
       const sortedVertices = Array.from(shadedVerticesSet).sort((a, b) => a - b);
 
       reportText += '=== ICO SPACE CONVERSIONS ===\n\n';
-      
+
       const ico8Vertices = new Set();
       const ico16Vertices = new Set();
       const ico32Vertices = new Set();
       const icoMEVertices = new Set();
-      
+
 
       sortedVertices.forEach(mappingIdx => {
         const spaces = convertVertexToAllSpaces(mappingIdx);
@@ -623,7 +660,7 @@
         const timestamp = new Date().toISOString().slice(0, 10);
         const filename = `brain_shading_report_${timestamp}.txt`;
         downloadTextFile(report, filename);
-        
+
         // Optional: clear shading after export
         const userConfirm = confirm('Export complete! Clear shading for a new selection?');
         if (userConfirm) {
@@ -633,13 +670,13 @@
     }
 
     // -----------------------------------------------------------------
-    // NEW: SHADING MODE EVENT HANDLERS
+    // SHADING MODE EVENT HANDLERS
     // -----------------------------------------------------------------
-    $('#toggle-shading-btn').on('click', function() {
+    $('#toggle-shading-btn').on('click', function () {
       toggleShadingMode();
     });
 
-    $('#finish-shading-btn').on('click', function() {
+    $('#finish-shading-btn').on('click', function () {
       if (shadedVerticesSet.size === 0) {
         alert('No vertices shaded. Please shade a region first.');
         return;
@@ -647,26 +684,34 @@
       finishShadingAndExport();
     });
 
-    $('#clear-shading-btn').on('click', function() {
-  clearShading();
-});
-    
-    image.on('dragstart', function(e) {
+    $('#clear-shading-btn').on('click', function () {
+      clearShading();
+    });
+
+    // Stop drawing when the mouse button is released – even if the cursor
+    // is outside the image area.
+    $(document).on('mouseup', function () {
+      if (shadingModeActive) {
+        isDrawing = false;
+      }
+    });
+
+    image.on('dragstart', function (e) {
       if (shadingModeActive) {
         e.preventDefault();
         return false;
       }
     });
 
-    image.on('mousedown', function(e) {
+    image.on('mousedown', function (e) {
       if (shadingModeActive) {
         e.preventDefault();
       }
       if (!shadingModeActive) return;
-      isDrawing = true;
+      isDrawing = true;               // start drawing only while mouse is down
     });
 
-    image.on('mousemove', function(e) {
+    image.on('mousemove', function (e) {
       if (!shadingModeActive || !isDrawing) return;
 
       const rect = this.getBoundingClientRect();
@@ -680,37 +725,36 @@
       }
     });
 
-    image.on('mouseleave', function() {
+    image.on('mouseleave', function () {
+      // When the cursor leaves the image, stop drawing.
       isDrawing = false;
     });
 
-    /* --------------------------------------------------------------
-       Hover‑info – unchanged
-       -------------------------------------------------------------- */
-    image.on('mousemove', e=>{
+
+    image.on('mousemove', e => {
       const rect = image[0].getBoundingClientRect();
       const x = e.clientX - rect.left,
-            y = e.clientY - rect.top;
-      if (x<0||y<0||x>rect.width||y>rect.height){ $vertexInfo.text('No vertex selected');return; }
+        y = e.clientY - rect.top;
+      if (x < 0 || y < 0 || x > rect.width || y > rect.height) { $vertexInfo.text('No vertex selected'); return; }
 
       const mx = Math.floor(x * scaleX),
-            my = Math.floor(y * scaleY);
-      const vertex = getVertexFromMapping(mx,my);
+        my = Math.floor(y * scaleY);
+      const vertex = getVertexFromMapping(mx, my);
 
-      if (vertex===null){
+      if (vertex === null) {
         vertexInfo.text('No vertex selected');
         return;
       }
 
-      const ico8  = lookupTableIco8[vertex];
+      const ico8 = lookupTableIco8[vertex];
       const ico16 = lookupTableIco16[vertex];
       const ico32 = lookupTableIco32[vertex];
       const icoME = lookupTableIcoME[vertex];
 
       let dataValue = 'N/A';
-      if (dataMatrix && currentIcoSpace){
+      if (dataMatrix && currentIcoSpace) {
         const lt = getLookupTable(currentIcoSpace);
-        if (lt){
+        if (lt) {
           const idx = lt[vertex];
           dataValue = dataMatrix[idx] !== undefined ? dataMatrix[idx] : 'N/A';
         }
@@ -722,21 +766,22 @@
         ico16: ${ico16}<br>
         ico32: ${ico32}<br>
         MEBRAIN: ${icoME}<br><br>
-        <strong>Data Matrix Value in ${currentIcoSpace||'—'} space:</strong><br>
+        <strong>Data Matrix Value in ${currentIcoSpace || '—'} space:</strong><br>
         value: ${dataValue}<br><br>
       `;
       vertexInfo.html(html);
     });
-    image.on('mouseleave',()=>{ vertexInfo.text('No vertex selected'); });
+    image.on('mouseleave', () => { vertexInfo.text('No vertex selected'); });
 
     /* --------------------------------------------------------------
        Initialise everything
        -------------------------------------------------------------- */
-    $(document).ready(()=>{
+    $(document).ready(() => {
       displayFileName();
       loadData();
       $(window).on('resize', updateDisplaySize);
     });
   </script>
 </body>
+
 </html>
