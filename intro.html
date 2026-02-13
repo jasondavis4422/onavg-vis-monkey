@@ -344,8 +344,6 @@
     const vertexInfo = $('#vertex-info');
     const fileNameInfo = $('#file-name');
 
-
-
     /* --------------------------------------------------------------
        Utility functions – unchanged
        -------------------------------------------------------------- */
@@ -369,7 +367,7 @@
     }
     function displayFileName() {
       const name = image.attr('src').split('/').pop();
-      fileName.text(`File: ${name}`);
+      fileNameInfo.text(`File: ${name}`);
     }
     function updateDisplaySize() {
       const rect = image[0].getBoundingClientRect();
@@ -449,7 +447,7 @@
     $('#imageUpload').on('change', e => {
       const file = e.target.files[0];
       if (file) {
-        fileName.text(`File: ${file.name}`);
+        fileNameInfo.text(`File: ${file.name}`);
         const url = URL.createObjectURL(file);
         image.attr('src', url).on('load', updateDisplaySize);
       }
@@ -457,7 +455,7 @@
     $('#dataUpload').on('change', e => {
       const file = e.target.files[0];
       if (file) {
-        fileName.text(`Data Matrix File: ${file.name}`);
+        fileNameInfo.text(`Data Matrix File: ${file.name}`);
         const reader = new FileReader();
         reader.onload = ev => {
           try {
