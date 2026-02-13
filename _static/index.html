@@ -509,12 +509,13 @@
     });
 
     // -----------------------------------------------------------------
-    // NEW: SHADING FEATURE FUNCTIONS (FREEFORM POLYGON ROI)
+    // NEW: SHADING FEATURE FUNCTIONS (FREEFORM BLOB ROI)
     // -----------------------------------------------------------------
 
-    // Track freeform drawing
     let drawingPoints = [];
-    let polygonOverlay = null;
+    let canvasOverlay = null;
+    let drawingCanvas = null;
+    let drawingCtx = null;
 
     function toggleShadingMode() {
       shadingModeActive = !shadingModeActive;
@@ -538,140 +539,68 @@
       $('#shading-status').text(`Shading ${status} | Vertices: ${count}`);
     }
 
-    function drawPolygonOverlay(points) {
-      // Remove old overlay if it exists
-      if (polygonOverlay) {
-        polygonOverlay.remove();
+    function createDrawingCanvas() {
+      if (canvasOverlay) {
+        canvasOverlay.remove();
       }
-
-      if (points.length < 2) return;
 
       const imgOffset = image.offset();
-      const $canvas = $('<canvas></canvas>');
-      const canvas = $canvas[0];
-
-      // Set canvas size to match image display
       const rect = image[0].getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
 
-      const ctx = canvas.getContext('2d');
+      const $canvas = $('<canvas></canvas>');
+      drawingCanvas = $canvas[0];
+      drawingCanvas.width = rect.width;
+      drawingCanvas.height = rect.height;
 
-      // Draw the region outline
-      ctx.strokeStyle = 'rgba(0, 255, 0, 0.8)';
-      ctx.lineWidth = 2;
-      ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
-
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].x, points[i].y);
-      }
-      // Don't close yet if still drawing
-      ctx.stroke();
+      drawingCtx = drawingCanvas.getContext('2d');
 
       $canvas.css({
         position: 'absolute',
         left: imgOffset.left,
         top: imgOffset.top,
+        border: '1px dashed rgba(0, 255, 0, 0.5)',
         pointerEvents: 'none',
         zIndex: 115
       });
 
       $('body').append($canvas);
-      polygonOverlay = $canvas;
+      canvasOverlay = $canvas;
+    }
+
+    function drawBrushStroke(x, y) {
+      if (!drawingCtx) return;
+
+      drawingCtx.strokeStyle = 'rgba(0, 255, 0, 0.6)';
+      drawingCtx.lineWidth = 5;
+      drawingCtx.lineCap = 'round';
+      drawingCtx.lineJoin = 'round';
+
+      if (drawingPoints.length === 0) {
+        drawingCtx.beginPath();
+        drawingCtx.moveTo(x, y);
+      } else {
+        drawingCtx.lineTo(x, y);
+        drawingCtx.stroke();
+      }
+
+      drawingPoints.push({ x, y });
+    }
+
+    function closeBlobShape() {
+      if (!drawingCtx || drawingPoints.length < 3) return;
+
+      // Draw line back to start to close the shape
+      const firstPoint = drawingPoints[0];
+      drawingCtx.lineTo(firstPoint.x, firstPoint.y);
+      drawingCtx.stroke();
+
+      // Fill the shape
+      drawingCtx.fillStyle = 'rgba(0, 255, 0, 0.15)';
+      drawingCtx.fill();
     }
 
     function clearDrawing() {
-      drawingPoints = [];
-      if (polygonOverlay) {
-        polygonOverlay.remove();
-        polygonOverlay = null;
-      }
     }
-
-    function pointInPolygon(point, polygon) {
-      // Ray casting algorithm to check if point is inside polygon
-      const x = point.x;
-      const y = point.y;
-      let inside = false;
-
-      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-        const xi = polygon[i].x;
-        const yi = polygon[i].y;
-        const xj = polygon[j].x;
-        const yj = polygon[j].y;
-
-        const intersect = ((yi > y) !== (yj > y)) &&
-          (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-        if (intersect) inside = !inside;
-      }
-
-      return inside;
-    }
-
-    function findVerticesInRegion(polygonScreenCoords) {
-      if (polygonScreenCoords.length < 3) return new Set();
-
-      // Convert screen coordinates to original image coordinates
-      const polygonOrigCoords = polygonScreenCoords.map(p => ({
-        x: Math.round(p.x * scaleX),
-        y: Math.round(p.y * scaleY)
-      }));
-
-      // Get bounding box of polygon
-      let minX = Infinity, maxX = -Infinity;
-      let minY = Infinity, maxY = -Infinity;
-
-      polygonOrigCoords.forEach(p => {
-        minX = Math.min(minX, p.x);
-        maxX = Math.max(maxX, p.x);
-        minY = Math.min(minY, p.y);
-        maxY = Math.max(maxY, p.y);
-      });
-
-      minX = Math.max(0, minX);
-      maxX = Math.min(originalWidth - 1, maxX);
-      minY = Math.max(0, minY);
-      maxY = Math.min(originalHeight - 1, maxY);
-
-      const vertices = new Set();
-
-      // Check each point within bounding box
-      for (let y = minY; y <= maxY; y++) {
-        for (let x = minX; x <= maxX; x++) {
-          if (pointInPolygon({ x, y }, polygonOrigCoords)) {
-            const vertex = getVertexFromMapping(x, y);
-            if (vertex !== null) {
-              vertices.add(vertex);
-            }
-          }
-        }
-      }
-
-      return vertices;
-    }
-
-    function recordVerticesInRegion(polygonScreenCoords) {
-      const verticesInRegion = findVerticesInRegion(polygonScreenCoords);
-
-      verticesInRegion.forEach(vertex => {
-        if (!shadedVerticesSet.has(vertex)) {
-          shadedVerticesSet.add(vertex);
-        }
-      });
-
-      updateShadingStatus();
-    }
-
-    function clearShading() {
-      shadedVerticesSet.clear();
-      shadedOverlays.forEach($overlay => $overlay.remove());
-      shadedOverlays = [];
-      clearDrawing();
-      updateShadingStatus();
-    }
-
     function convertVertexToAllSpaces(mappingIndex) {
       const result = {
         ico8: lookupTableIco8[mappingIndex],
@@ -815,7 +744,7 @@
       }
     }
     // -----------------------------------------------------------------
-    // SHADING EVENT HANDLERS (FREEFORM POLYGON ROI)
+    // SHADING EVENT HANDLERS (FREEFORM BLOB)
     // -----------------------------------------------------------------
 
     $('#toggle-shading-btn').on('click', function () {
@@ -851,30 +780,32 @@
       const xScreen = e.clientX - rect.left;
       const yScreen = e.clientY - rect.top;
 
-      drawingPoints.push({ x: xScreen, y: yScreen });
-      drawPolygonOverlay(drawingPoints);
+      createDrawingCanvas();
+      drawBrushStroke(xScreen, yScreen);
       isDrawing = true;
     });
 
     image.on('mousemove', function (e) {
-      if (!shadingModeActive || !isDrawing || drawingPoints.length === 0) return;
+      if (!shadingModeActive || !isDrawing) return;
 
       const rect = this.getBoundingClientRect();
       const xScreen = e.clientX - rect.left;
       const yScreen = e.clientY - rect.top;
 
-      // Create a temporary array with the current mouse position for preview
-      const tempPoints = [...drawingPoints, { x: xScreen, y: yScreen }];
-      drawPolygonOverlay(tempPoints);
+      if (xScreen >= 0 && xScreen <= rect.width && yScreen >= 0 && yScreen <= rect.height) {
+        drawBrushStroke(xScreen, yScreen);
+      }
     });
 
     $(document).on('mouseup', function () {
       if (shadingModeActive && isDrawing && drawingPoints.length >= 3) {
         isDrawing = false;
-        recordVerticesInRegion(drawingPoints);
+        closeBlobShape();
+        recordVerticesInBlob(drawingPoints);
         clearDrawing();
       } else if (shadingModeActive && isDrawing) {
         isDrawing = false;
+        clearDrawing();
       }
     });
 
