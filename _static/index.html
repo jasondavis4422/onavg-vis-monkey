@@ -333,12 +333,6 @@
       scaleX = 1,
       scaleY = 1;
 
-    // Shading mode variables
-    let shadingModeActive = false;
-    let isDrawing = false;
-    let shadedVerticesSet = new Set();
-    let shadedOverlays = [];
-
     const image = $('#brain-image');
     const vertexInfo = $('#vertex-info');
     const fileName = $('#file-name');
@@ -508,8 +502,13 @@
     });
 
     // -----------------------------------------------------------------
-    // SHADING FEATURE FUNCTIONS
+    // NEW: SHADING FEATURE FUNCTIONS (FREEFORM POLYGON ROI)
     // -----------------------------------------------------------------
+
+    // Track freeform drawing
+    let drawingPoints = [];
+    let polygonOverlay = null;
+
     function toggleShadingMode() {
       shadingModeActive = !shadingModeActive;
       const $btn = $('#toggle-shading-btn');
@@ -517,6 +516,7 @@
       if (shadingModeActive) {
         $btn.addClass('active');
         image.addClass('shading-active');
+        clearDrawing();
         updateShadingStatus();
       } else {
         $btn.removeClass('active');
@@ -531,35 +531,137 @@
       $('#shading-status').text(`Shading ${status} | Vertices: ${count}`);
     }
 
-    function recordShadedVertex(mouseXOrig, mouseYOrig) {
-      const vertex = getVertexFromMapping(mouseXOrig, mouseYOrig);
-
-      if (vertex !== null && !shadedVerticesSet.has(vertex)) {
-        shadedVerticesSet.add(vertex);
-
-        // Draw overlay
-        const rect = image[0].getBoundingClientRect();
-        const screenX = Math.round(mouseXOrig / scaleX);
-        const screenY = Math.round(mouseYOrig / scaleY);
-
-        const $overlay = $('<div class="shading-overlay"></div>');
-        const imgOffset = image.offset();
-        // inside recordShadedVertex()
-        $overlay.css({
-          left: imgOffset.left + screenX - 0.5,   // 2 = 4/2
-          top: imgOffset.top + screenY - 0.5
-        });
-        $('body').append($overlay);
-        shadedOverlays.push($overlay);
-
-        updateShadingStatus();
+    function drawPolygonOverlay(points) {
+      // Remove old overlay if it exists
+      if (polygonOverlay) {
+        polygonOverlay.remove();
       }
+
+      if (points.length < 2) return;
+
+      const imgOffset = image.offset();
+      const $canvas = $('<canvas></canvas>');
+      const canvas = $canvas[0];
+
+      // Set canvas size to match image display
+      const rect = image[0].getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+
+      const ctx = canvas.getContext('2d');
+
+      // Draw the region outline
+      ctx.strokeStyle = 'rgba(0, 255, 0, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      // Don't close yet if still drawing
+      ctx.stroke();
+
+      $canvas.css({
+        position: 'absolute',
+        left: imgOffset.left,
+        top: imgOffset.top,
+        pointerEvents: 'none',
+        zIndex: 115
+      });
+
+      $('body').append($canvas);
+      polygonOverlay = $canvas;
+    }
+
+    function clearDrawing() {
+      drawingPoints = [];
+      if (polygonOverlay) {
+        polygonOverlay.remove();
+        polygonOverlay = null;
+      }
+    }
+
+    function pointInPolygon(point, polygon) {
+      // Ray casting algorithm to check if point is inside polygon
+      const x = point.x;
+      const y = point.y;
+      let inside = false;
+
+      for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+        const xi = polygon[i].x;
+        const yi = polygon[i].y;
+        const xj = polygon[j].x;
+        const yj = polygon[j].y;
+
+        const intersect = ((yi > y) !== (yj > y)) &&
+          (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+
+      return inside;
+    }
+
+    function findVerticesInRegion(polygonScreenCoords) {
+      if (polygonScreenCoords.length < 3) return new Set();
+
+      // Convert screen coordinates to original image coordinates
+      const polygonOrigCoords = polygonScreenCoords.map(p => ({
+        x: Math.round(p.x * scaleX),
+        y: Math.round(p.y * scaleY)
+      }));
+
+      // Get bounding box of polygon
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+
+      polygonOrigCoords.forEach(p => {
+        minX = Math.min(minX, p.x);
+        maxX = Math.max(maxX, p.x);
+        minY = Math.min(minY, p.y);
+        maxY = Math.max(maxY, p.y);
+      });
+
+      minX = Math.max(0, minX);
+      maxX = Math.min(originalWidth - 1, maxX);
+      minY = Math.max(0, minY);
+      maxY = Math.min(originalHeight - 1, maxY);
+
+      const vertices = new Set();
+
+      // Check each point within bounding box
+      for (let y = minY; y <= maxY; y++) {
+        for (let x = minX; x <= maxX; x++) {
+          if (pointInPolygon({ x, y }, polygonOrigCoords)) {
+            const vertex = getVertexFromMapping(x, y);
+            if (vertex !== null) {
+              vertices.add(vertex);
+            }
+          }
+        }
+      }
+
+      return vertices;
+    }
+
+    function recordVerticesInRegion(polygonScreenCoords) {
+      const verticesInRegion = findVerticesInRegion(polygonScreenCoords);
+
+      verticesInRegion.forEach(vertex => {
+        if (!shadedVerticesSet.has(vertex)) {
+          shadedVerticesSet.add(vertex);
+        }
+      });
+
+      updateShadingStatus();
     }
 
     function clearShading() {
       shadedVerticesSet.clear();
       shadedOverlays.forEach($overlay => $overlay.remove());
       shadedOverlays = [];
+      clearDrawing();
       updateShadingStatus();
     }
 
@@ -568,7 +670,8 @@
         ico8: lookupTableIco8[mappingIndex],
         ico16: lookupTableIco16[mappingIndex],
         ico32: lookupTableIco32[mappingIndex],
-        icoME: lookupTableIcoME[mappingIndex],
+        ico64: lookupTableIco64[mappingIndex],
+        ico128: lookupTableIco128[mappingIndex]
       };
       return result;
     }
@@ -595,7 +698,6 @@
       reportText += `Total vertices shaded: ${shadedVerticesSet.size}\n`;
       reportText += `Timestamp: ${new Date().toISOString()}\n\n`;
 
-      // Sort vertices for consistent output
       const sortedVertices = Array.from(shadedVerticesSet).sort((a, b) => a - b);
 
       reportText += '=== ICO SPACE CONVERSIONS ===\n\n';
@@ -603,15 +705,16 @@
       const ico8Vertices = new Set();
       const ico16Vertices = new Set();
       const ico32Vertices = new Set();
-      const icoMEVertices = new Set();
-
+      const ico64Vertices = new Set();
+      const ico128Vertices = new Set();
 
       sortedVertices.forEach(mappingIdx => {
         const spaces = convertVertexToAllSpaces(mappingIdx);
         ico8Vertices.add(spaces.ico8);
         ico16Vertices.add(spaces.ico16);
         ico32Vertices.add(spaces.ico32);
-        icoMEVertices.add(spaces.icoME);
+        ico64Vertices.add(spaces.ico64);
+        ico128Vertices.add(spaces.ico128);
       });
 
       reportText += `ICO8 Vertices (${ico8Vertices.size}):\n`;
@@ -623,17 +726,57 @@
       reportText += `ICO32 Vertices (${ico32Vertices.size}):\n`;
       reportText += Array.from(ico32Vertices).sort((a, b) => a - b).join(', ') + '\n\n';
 
-      reportText += `ICOME Vertices (${icoMEVertices.size}):\n`;
-      reportText += Array.from(icoMEVertices).sort((a, b) => a - b).join(', ') + '\n\n';
+      reportText += `ICO64 Vertices (${ico64Vertices.size}):\n`;
+      reportText += Array.from(ico64Vertices).sort((a, b) => a - b).join(', ') + '\n\n';
+
+      reportText += `ICO128 Vertices (${ico128Vertices.size}):\n`;
+      reportText += Array.from(ico128Vertices).sort((a, b) => a - b).join(', ') + '\n\n';
+
+      reportText += '=== ANATOMICAL PARCELLATIONS ===\n\n';
+
+      const destrieixLabels = new Set();
+      const dkLabels = new Set();
+      const dktLabels = new Set();
+      const ds128Aparc = new Set();
+      const ds128AparcA2009s = new Set();
+      const ds128AparcDKT = new Set();
+
+      sortedVertices.forEach(mappingIdx => {
+        const parcs = convertVertexToAllParcellations(mappingIdx);
+        destrieixLabels.add(parcs.destrieux);
+        dkLabels.add(parcs.dk);
+        dktLabels.add(parcs.dkt);
+        ds128Aparc.add(parcs.ds128_aparc);
+        ds128AparcA2009s.add(parcs.ds128_aparc_a2009s);
+        ds128AparcDKT.add(parcs.ds128_aparc_DKTatlas);
+      });
+
+      reportText += `Destrieux Labels (${destrieixLabels.size}):\n`;
+      reportText += Array.from(destrieixLabels).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
+
+      reportText += `DK Labels (${dkLabels.size}):\n`;
+      reportText += Array.from(dkLabels).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
+
+      reportText += `DKT Labels (${dktLabels.size}):\n`;
+      reportText += Array.from(dktLabels).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
+
+      reportText += `DS128 APARC (${ds128Aparc.size}):\n`;
+      reportText += Array.from(ds128Aparc).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
+
+      reportText += `DS128 APARC.A2009s (${ds128AparcA2009s.size}):\n`;
+      reportText += Array.from(ds128AparcA2009s).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
+
+      reportText += `DS128 APARC.DKTatlas (${ds128AparcDKT.size}):\n`;
+      reportText += Array.from(ds128AparcDKT).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
 
       reportText += '=== DETAILED VERTEX MAPPING ===\n\n';
-      reportText += 'MappingIndex | ICO8 | ICO16 | ICO32 | ICOME\n';
+      reportText += 'MappingIndex | ICO8 | ICO16 | ICO32 | ICO64 | ICO128 | Destrieux | DK | DKT | DS128-aparc | DS128-a2009s | DS128-DKT\n';
       reportText += '-'.repeat(150) + '\n';
 
       sortedVertices.forEach(mappingIdx => {
         const spaces = convertVertexToAllSpaces(mappingIdx);
         const parcs = convertVertexToAllParcellations(mappingIdx);
-        reportText += `${mappingIdx} | ${spaces.ico8} | ${spaces.ico16} | ${spaces.ico32} | ${spaces.icoME} | \n`;
+        reportText += `${mappingIdx} | ${spaces.ico8} | ${spaces.ico16} | ${spaces.ico32} | ${spaces.ico64} | ${spaces.ico128} | ${parcs.destrieux} | ${parcs.dk} | ${parcs.dkt} | ${parcs.ds128_aparc} | ${parcs.ds128_aparc_a2009s} | ${parcs.ds128_aparc_DKTatlas}\n`;
       });
 
       return reportText;
@@ -658,13 +801,79 @@
         const filename = `brain_shading_report_${timestamp}.txt`;
         downloadTextFile(report, filename);
 
-        // Optional: clear shading after export
         const userConfirm = confirm('Export complete! Clear shading for a new selection?');
         if (userConfirm) {
           clearShading();
         }
       }
     }
+    // -----------------------------------------------------------------
+    // SHADING EVENT HANDLERS (FREEFORM POLYGON ROI)
+    // -----------------------------------------------------------------
+
+    $('#toggle-shading-btn').on('click', function () {
+      toggleShadingMode();
+    });
+
+    $('#finish-shading-btn').on('click', function () {
+      if (shadedVerticesSet.size === 0) {
+        alert('No vertices shaded. Please shade a region first.');
+        return;
+      }
+      finishShadingAndExport();
+    });
+
+    $('#clear-shading-btn').on('click', function () {
+      clearShading();
+    });
+
+    image.on('dragstart', function (e) {
+      if (shadingModeActive) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    image.on('mousedown', function (e) {
+      if (shadingModeActive) {
+        e.preventDefault();
+      }
+      if (!shadingModeActive) return;
+
+      const rect = this.getBoundingClientRect();
+      const xScreen = e.clientX - rect.left;
+      const yScreen = e.clientY - rect.top;
+
+      drawingPoints.push({ x: xScreen, y: yScreen });
+      drawPolygonOverlay(drawingPoints);
+      isDrawing = true;
+    });
+
+    image.on('mousemove', function (e) {
+      if (!shadingModeActive || !isDrawing || drawingPoints.length === 0) return;
+
+      const rect = this.getBoundingClientRect();
+      const xScreen = e.clientX - rect.left;
+      const yScreen = e.clientY - rect.top;
+
+      // Create a temporary array with the current mouse position for preview
+      const tempPoints = [...drawingPoints, { x: xScreen, y: yScreen }];
+      drawPolygonOverlay(tempPoints);
+    });
+
+    $(document).on('mouseup', function () {
+      if (shadingModeActive && isDrawing && drawingPoints.length >= 3) {
+        isDrawing = false;
+        recordVerticesInRegion(drawingPoints);
+        clearDrawing();
+      } else if (shadingModeActive && isDrawing) {
+        isDrawing = false;
+      }
+    });
+
+    image.on('mouseleave', function () {
+      isDrawing = false;
+    });
 
     // -----------------------------------------------------------------
     // SHADING MODE EVENT HANDLERS
