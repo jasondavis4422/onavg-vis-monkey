@@ -201,12 +201,10 @@
     /* Shading overlay – semi-transparent green square */
     .shading-overlay {
       position: absolute;
-      width: 4px;
-      /* was 10px   → thinner */
-      height: 4px;
-      /* was 10px   → thinner */
+      width: 2x;
+      height: 2px;
       background-color: rgba(0, 255, 0, 0.3);
-      border: 0.25px solid rgba(0, 255, 0, 0.6);
+      border: 0.1px solid rgba(0, 255, 0, 0.6);
       /* keep or reduce if desired */
       pointer-events: none;
       z-index: 110;
@@ -549,8 +547,8 @@
         const imgOffset = image.offset();
         // inside recordShadedVertex()
         $overlay.css({
-          left: imgOffset.left + screenX - 2,   // 2 = 4/2
-          top: imgOffset.top + screenY - 2
+          left: imgOffset.left + screenX - 1,   // 2 = 4/2
+          top: imgOffset.top + screenY - 1
         });
         $('body').append($overlay);
         shadedOverlays.push($overlay);
