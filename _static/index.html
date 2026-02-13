@@ -40,14 +40,6 @@
       gap: 20px;
     }
 
-    #brain-image {
-      max-width: 80%;
-      max-height: 80%;
-      object-fit: contain;
-      border: none;
-      outline: none;
-    }
-
     #table-container {
       position: fixed;
       /* stay in place while scrolling */
@@ -173,14 +165,14 @@
     }
 
     #brain-image.shading-active {
-      cursor: crosshair;
-      user-select: none;
-      -webkit-user-drag: none;
-      -webkit-touch-callout: none;
-      border: none;
-      outline: none;
-      box-shadow: none;
-    }
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
 
     /* MARKER – green "X" */
     .vertex-marker {
@@ -563,7 +555,7 @@
         position: 'absolute',
         left: imgOffset.left,
         top: imgOffset.top,
-        border: '1px dashed rgba(0, 255, 0, 0.5)',
+        border: 'none',
         pointerEvents: 'none',
         zIndex: 115
       });
@@ -737,7 +729,7 @@
       const ico16Vertices = new Set();
       const ico32Vertices = new Set();
       const icoMEVertices = new Set();
-
+     
 
       sortedVertices.forEach(mappingIdx => {
         const spaces = convertVertexToAllSpaces(mappingIdx);
@@ -852,6 +844,7 @@
       const xScreen = e.clientX - rect.left;
       const yScreen = e.clientY - rect.top;
 
+      createDrawingCanvas();
       drawBrushStroke(xScreen, yScreen);
       isDrawing = true;
     });
