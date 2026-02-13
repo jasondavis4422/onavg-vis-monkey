@@ -600,7 +600,98 @@
     }
 
     function clearDrawing() {
+      drawingPoints = [];
+      if (canvasOverlay) {
+        canvasOverlay.remove();
+        canvasOverlay = null;
+      }
+      drawingCanvas = null;
+      drawingCtx = null;
     }
+
+    function pointInShape(point, shapePoints) {
+      // Ray casting algorithm for point-in-polygon test
+      const x = point.x;
+      const y = point.y;
+      let inside = false;
+
+      for (let i = 0, j = shapePoints.length - 1; i < shapePoints.length; j = i++) {
+        const xi = shapePoints[i].x;
+        const yi = shapePoints[i].y;
+        const xj = shapePoints[j].x;
+        const yj = shapePoints[j].y;
+
+        const intersect = ((yi > y) !== (yj > y)) &&
+          (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+
+      return inside;
+    }
+
+    function findVerticesInBlob(shapeScreenCoords) {
+      if (shapeScreenCoords.length < 3) return new Set();
+
+      // Convert screen coordinates to original image coordinates
+      const shapeOrigCoords = shapeScreenCoords.map(p => ({
+        x: Math.round(p.x * scaleX),
+        y: Math.round(p.y * scaleY)
+      }));
+
+      // Get bounding box
+      let minX = Infinity, maxX = -Infinity;
+      let minY = Infinity, maxY = -Infinity;
+
+      shapeOrigCoords.forEach(p => {
+        minX = Math.min(minX, p.x);
+        maxX = Math.max(maxX, p.x);
+        minY = Math.min(minY, p.y);
+        maxY = Math.max(maxY, p.y);
+      });
+
+      minX = Math.max(0, minX);
+      maxX = Math.min(originalWidth - 1, maxX);
+      minY = Math.max(0, minY);
+      maxY = Math.min(originalHeight - 1, maxY);
+
+      const vertices = new Set();
+
+      // Check each point within bounding box
+      for (let y = minY; y <= maxY; y++) {
+        for (let x = minX; x <= maxX; x++) {
+          if (pointInShape({ x, y }, shapeOrigCoords)) {
+            const vertex = getVertexFromMapping(x, y);
+            if (vertex !== null) {
+              vertices.add(vertex);
+            }
+          }
+        }
+      }
+
+      return vertices;
+    }
+
+    function recordVerticesInBlob(shapeScreenCoords) {
+      const verticesInBlob = findVerticesInBlob(shapeScreenCoords);
+
+      verticesInBlob.forEach(vertex => {
+        if (!shadedVerticesSet.has(vertex)) {
+          shadedVerticesSet.add(vertex);
+        }
+      });
+
+      updateShadingStatus();
+    }
+
+
+    function clearShading() {
+      shadedVerticesSet.clear();
+      shadedOverlays.forEach($overlay => $overlay.remove());
+      shadedOverlays = [];
+      clearDrawing();
+      updateShadingStatus();
+    }
+
     function convertVertexToAllSpaces(mappingIndex) {
       const result = {
         ico8: lookupTableIco8[mappingIndex],
