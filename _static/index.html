@@ -333,9 +333,18 @@
       scaleX = 1,
       scaleY = 1;
 
+
+    // Shading mode variables
+    let shadingModeActive = false;
+    let isDrawing = false;
+    let shadedVerticesSet = new Set();
+    let shadedOverlays = [];
+
     const image = $('#brain-image');
     const vertexInfo = $('#vertex-info');
-    const fileName = $('#file-name');
+    const fileNameInfo = $('#file-name');
+
+
 
     /* --------------------------------------------------------------
        Utility functions – unchanged
