@@ -165,14 +165,14 @@
     }
 
     #brain-image.shading-active {
-  cursor: crosshair;
-  user-select: none;
-  -webkit-user-drag: none;
-  -webkit-touch-callout: none;
-  border: none;
-  outline: none;
-  box-shadow: none;
-}
+      cursor: crosshair;
+      user-select: none;
+      -webkit-user-drag: none;
+      -webkit-touch-callout: none;
+      border: none;
+      outline: none;
+      box-shadow: none;
+    }
 
     /* MARKER – green "X" */
     .vertex-marker {
@@ -310,7 +310,7 @@
 
   <script>
     /* ==============================================================
-       GLOBAL VARIABLES – unchanged
+       GLOBAL VARIABLES
        ============================================================== */
     let mappingData = null,
       lookupTableIco8 = null,
@@ -342,7 +342,7 @@
     const fileNameInfo = $('#file-name');
 
     /* --------------------------------------------------------------
-       Utility functions – unchanged
+       Utility functions 
        -------------------------------------------------------------- */
     function determineIcoSpace(len) {
       switch (len) {
@@ -381,7 +381,7 @@
     }
 
     /* --------------------------------------------------------------
-       Load all JSON files – unchanged
+       Load all JSON files 
        -------------------------------------------------------------- */
     function loadData() {
       $.when(
@@ -406,7 +406,7 @@
     }
 
     /* --------------------------------------------------------------
-       Helpers for vertex coordinates – unchanged
+       Helpers for vertex coordinates 
        -------------------------------------------------------------- */
     function getVertexCoordinates(icoSpace, vertex) {
       const table = getLookupTable(icoSpace);
@@ -506,7 +506,7 @@
     });
 
     // -----------------------------------------------------------------
-    // NEW: SHADING FEATURE FUNCTIONS (FREEFORM BLOB ROI)
+    // SHADING FEATURE FUNCTIONS (FREEFORM BLOB ROI)
     // -----------------------------------------------------------------
 
     let drawingPoints = [];
@@ -729,7 +729,7 @@
       const ico16Vertices = new Set();
       const ico32Vertices = new Set();
       const icoMEVertices = new Set();
-     
+
 
       sortedVertices.forEach(mappingIdx => {
         const spaces = convertVertexToAllSpaces(mappingIdx);
