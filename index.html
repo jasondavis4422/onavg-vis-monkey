@@ -200,8 +200,8 @@
 
     .shading-overlay {
       position: absolute;
-      width: 2px;
-      height: 2px;
+      width: 1px;
+      height: 1px;
       background-color: transparent;
       border: 1px solid rgba(0, 255, 0, 0.8);
       border-radius: 50%;
@@ -547,8 +547,8 @@
         const imgOffset = image.offset();
         // inside recordShadedVertex()
         $overlay.css({
-          left: imgOffset.left + screenX - 1,   // 2 = 4/2
-          top: imgOffset.top + screenY - 1
+          left: imgOffset.left + screenX - 0.5,   // 2 = 4/2
+          top: imgOffset.top + screenY - 0.5
         });
         $('body').append($overlay);
         shadedOverlays.push($overlay);
