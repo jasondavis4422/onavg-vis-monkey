@@ -44,6 +44,8 @@
       max-width: 80%;
       max-height: 80%;
       object-fit: contain;
+      border: none;
+      outline: none;
     }
 
     #table-container {
@@ -175,6 +177,9 @@
       user-select: none;
       -webkit-user-drag: none;
       -webkit-touch-callout: none;
+      border: none;
+      outline: none;
+      box-shadow: none;
     }
 
     /* MARKER – green "X" */
@@ -732,7 +737,7 @@
       const ico16Vertices = new Set();
       const ico32Vertices = new Set();
       const icoMEVertices = new Set();
-     
+
 
       sortedVertices.forEach(mappingIdx => {
         const spaces = convertVertexToAllSpaces(mappingIdx);
@@ -869,10 +874,8 @@
         isDrawing = false;
         closeBlobShape();
         recordVerticesInBlob(drawingPoints);
-        clearDrawing();
       } else if (shadingModeActive && isDrawing) {
         isDrawing = false;
-        clearDrawing();
       }
     });
 
