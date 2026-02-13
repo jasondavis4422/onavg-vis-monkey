@@ -882,68 +882,6 @@
       isDrawing = false;
     });
 
-    // -----------------------------------------------------------------
-    // SHADING MODE EVENT HANDLERS
-    // -----------------------------------------------------------------
-    $('#toggle-shading-btn').on('click', function () {
-      toggleShadingMode();
-    });
-
-    $('#finish-shading-btn').on('click', function () {
-      if (shadedVerticesSet.size === 0) {
-        alert('No vertices shaded. Please shade a region first.');
-        return;
-      }
-      finishShadingAndExport();
-    });
-
-    $('#clear-shading-btn').on('click', function () {
-      clearShading();
-    });
-
-    // Stop drawing when the mouse button is released – even if the cursor
-    // is outside the image area.
-    $(document).on('mouseup', function () {
-      if (shadingModeActive) {
-        isDrawing = false;
-      }
-    });
-
-    image.on('dragstart', function (e) {
-      if (shadingModeActive) {
-        e.preventDefault();
-        return false;
-      }
-    });
-
-    image.on('mousedown', function (e) {
-      if (shadingModeActive) {
-        e.preventDefault();
-      }
-      if (!shadingModeActive) return;
-      isDrawing = true;               // start drawing only while mouse is down
-    });
-
-    image.on('mousemove', function (e) {
-      if (!shadingModeActive || !isDrawing) return;
-
-      const rect = this.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
-        const mouseXOrig = Math.floor(x * scaleX);
-        const mouseYOrig = Math.floor(y * scaleY);
-        recordShadedVertex(mouseXOrig, mouseYOrig);
-      }
-    });
-
-    image.on('mouseleave', function () {
-      // When the cursor leaves the image, stop drawing.
-      isDrawing = false;
-    });
-
-
     image.on('mousemove', e => {
       const rect = image[0].getBoundingClientRect();
       const x = e.clientX - rect.left,
