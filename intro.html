@@ -697,8 +697,7 @@
         ico8: lookupTableIco8[mappingIndex],
         ico16: lookupTableIco16[mappingIndex],
         ico32: lookupTableIco32[mappingIndex],
-        ico64: lookupTableIco64[mappingIndex],
-        ico128: lookupTableIco128[mappingIndex]
+        icoME: lookupTableIcoME[mappingIndex],
       };
       return result;
     }
@@ -732,16 +731,15 @@
       const ico8Vertices = new Set();
       const ico16Vertices = new Set();
       const ico32Vertices = new Set();
-      const ico64Vertices = new Set();
-      const ico128Vertices = new Set();
+      const icoMEVertices = new Set();
+     
 
       sortedVertices.forEach(mappingIdx => {
         const spaces = convertVertexToAllSpaces(mappingIdx);
         ico8Vertices.add(spaces.ico8);
         ico16Vertices.add(spaces.ico16);
         ico32Vertices.add(spaces.ico32);
-        ico64Vertices.add(spaces.ico64);
-        ico128Vertices.add(spaces.ico128);
+        icoMEVertices.add(spaces.icoME);
       });
 
       reportText += `ICO8 Vertices (${ico8Vertices.size}):\n`;
@@ -753,13 +751,8 @@
       reportText += `ICO32 Vertices (${ico32Vertices.size}):\n`;
       reportText += Array.from(ico32Vertices).sort((a, b) => a - b).join(', ') + '\n\n';
 
-      reportText += `ICO64 Vertices (${ico64Vertices.size}):\n`;
-      reportText += Array.from(ico64Vertices).sort((a, b) => a - b).join(', ') + '\n\n';
-
-      reportText += `ICO128 Vertices (${ico128Vertices.size}):\n`;
-      reportText += Array.from(ico128Vertices).sort((a, b) => a - b).join(', ') + '\n\n';
-
-      reportText += '=== ANATOMICAL PARCELLATIONS ===\n\n';
+      reportText += `ICOME Vertices (${icoMEVertices.size}):\n`;
+      reportText += Array.from(icoMEVertices).sort((a, b) => a - b).join(', ') + '\n\n';
 
       const destrieixLabels = new Set();
       const dkLabels = new Set();
@@ -778,32 +771,15 @@
         ds128AparcDKT.add(parcs.ds128_aparc_DKTatlas);
       });
 
-      reportText += `Destrieux Labels (${destrieixLabels.size}):\n`;
-      reportText += Array.from(destrieixLabels).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
-
-      reportText += `DK Labels (${dkLabels.size}):\n`;
-      reportText += Array.from(dkLabels).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
-
-      reportText += `DKT Labels (${dktLabels.size}):\n`;
-      reportText += Array.from(dktLabels).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
-
-      reportText += `DS128 APARC (${ds128Aparc.size}):\n`;
-      reportText += Array.from(ds128Aparc).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
-
-      reportText += `DS128 APARC.A2009s (${ds128AparcA2009s.size}):\n`;
-      reportText += Array.from(ds128AparcA2009s).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
-
-      reportText += `DS128 APARC.DKTatlas (${ds128AparcDKT.size}):\n`;
-      reportText += Array.from(ds128AparcDKT).filter(x => x !== 'N/A').sort().join(', ') + '\n\n';
 
       reportText += '=== DETAILED VERTEX MAPPING ===\n\n';
-      reportText += 'MappingIndex | ICO8 | ICO16 | ICO32 | ICO64 | ICO128 | Destrieux | DK | DKT | DS128-aparc | DS128-a2009s | DS128-DKT\n';
+      reportText += 'MappingIndex | ICO8 | ICO16 | ICO32 | ICOME |\n';
       reportText += '-'.repeat(150) + '\n';
 
       sortedVertices.forEach(mappingIdx => {
         const spaces = convertVertexToAllSpaces(mappingIdx);
         const parcs = convertVertexToAllParcellations(mappingIdx);
-        reportText += `${mappingIdx} | ${spaces.ico8} | ${spaces.ico16} | ${spaces.ico32} | ${spaces.ico64} | ${spaces.ico128} | ${parcs.destrieux} | ${parcs.dk} | ${parcs.dkt} | ${parcs.ds128_aparc} | ${parcs.ds128_aparc_a2009s} | ${parcs.ds128_aparc_DKTatlas}\n`;
+        reportText += `${mappingIdx} | ${spaces.ico8} | ${spaces.ico16} | ${spaces.ico32} | ${spaces.icoME} |\n`;
       });
 
       return reportText;
