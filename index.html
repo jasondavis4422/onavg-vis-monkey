@@ -198,16 +198,16 @@
       top: -7px;
     }
 
-    /* Shading overlay – semi-transparent green square */
     .shading-overlay {
       position: absolute;
-      width: 2x;
+      width: 2px;
       height: 2px;
-      background-color: rgba(0, 255, 0, 0.3);
-      border: 0.1px solid rgba(0, 255, 0, 0.6);
-      /* keep or reduce if desired */
+      background-color: transparent;
+      border: 1px solid rgba(0, 255, 0, 0.8);
+      border-radius: 50%;
       pointer-events: none;
       z-index: 110;
+      box-shadow: 0 0 2px rgba(0, 255, 0, 0.6);
     }
 
     #clear-shading-btn {
