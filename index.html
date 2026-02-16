@@ -229,6 +229,7 @@
   <div id="shading-panel">
     <button id="toggle-shading-btn">🖍️ Shade Region</button>
     <span id="shading-status">Shading OFF | Vertices: 0</span>
+    <button id="undo-shading-btn">↩️ Remove Last Circle</button>
     <button id="finish-shading-btn">Finish & Export</button>
     <button id="clear-shading-btn">Clear Shading</button>
   </div>
@@ -336,6 +337,8 @@
     let isDrawing = false;
     let shadedVerticesSet = new Set();
     let shadedOverlays = [];
+    let finishedCanvases = [];
+    let circleHistory = []; // Array of Sets: each Set contains vertices for one circle
 
     const image = $('#brain-image');
     const vertexInfo = $('#vertex-info');
@@ -537,9 +540,6 @@
     }
 
     function createDrawingCanvas() {
-      if (canvasOverlay) {
-        canvasOverlay.remove();
-      }
 
       const imgOffset = image.offset();
       const rect = image[0].getBoundingClientRect();
@@ -671,20 +671,49 @@
     function recordVerticesInBlob(shapeScreenCoords) {
       const verticesInBlob = findVerticesInBlob(shapeScreenCoords);
 
+      // Store this specific group of vertices for the "Undo" feature
+      circleHistory.push(new Set(verticesInBlob));
+
+      // Merge into the master set
       verticesInBlob.forEach(vertex => {
-        if (!shadedVerticesSet.has(vertex)) {
-          shadedVerticesSet.add(vertex);
-        }
+        shadedVerticesSet.add(vertex);
       });
 
       updateShadingStatus();
     }
 
+    function undoLastCircle() {
+      if (circleHistory.length === 0) return;
+
+      // 1. Remove the last visual canvas
+      const lastCanvas = finishedCanvases.pop();
+      if (lastCanvas) lastCanvas.remove();
+
+      // 2. Remove the last data entry
+      circleHistory.pop();
+
+      // 3. Rebuild the master shadedVerticesSet from scratch 
+      // (This ensures vertices shared by overlapping circles aren't accidentally deleted)
+      shadedVerticesSet.clear();
+      circleHistory.forEach(set => {
+        set.forEach(vertex => {
+          shadedVerticesSet.add(vertex);
+        });
+      });
+
+      updateShadingStatus();
+    }
 
     function clearShading() {
       shadedVerticesSet.clear();
-      shadedOverlays.forEach($overlay => $overlay.remove());
-      shadedOverlays = [];
+
+      // Remove all persistent canvases from the screen
+      finishedCanvases.forEach($c => $c.remove());
+      finishedCanvases = [];
+
+      // Clean up current drawing if any
+      if (canvasOverlay) canvasOverlay.remove();
+
       clearDrawing();
       updateShadingStatus();
     }
@@ -827,6 +856,10 @@
       clearShading();
     });
 
+    $('#undo-shading-btn').on('click', function () {
+      undoLastCircle();
+    });
+
     image.on('dragstart', function (e) {
       if (shadingModeActive) {
         e.preventDefault();
@@ -835,10 +868,11 @@
     });
 
     image.on('mousedown', function (e) {
-      if (shadingModeActive) {
-        e.preventDefault();
-      }
       if (!shadingModeActive) return;
+      e.preventDefault();
+
+      isDrawing = true;
+      drawingPoints = []; // Reset points for this specific new circle
 
       const rect = this.getBoundingClientRect();
       const xScreen = e.clientX - rect.left;
@@ -846,7 +880,6 @@
 
       createDrawingCanvas();
       drawBrushStroke(xScreen, yScreen);
-      isDrawing = true;
     });
 
     image.on('mousemove', function (e) {
@@ -860,14 +893,20 @@
         drawBrushStroke(xScreen, yScreen);
       }
     });
-
     $(document).on('mouseup', function () {
-      if (shadingModeActive && isDrawing && drawingPoints.length >= 3) {
+      if (shadingModeActive && isDrawing) {
         isDrawing = false;
-        closeBlobShape();
-        recordVerticesInBlob(drawingPoints);
-      } else if (shadingModeActive && isDrawing) {
-        isDrawing = false;
+        if (drawingPoints.length >= 3) {
+          closeBlobShape();
+          recordVerticesInBlob(drawingPoints);
+          finishedCanvases.push(canvasOverlay);
+        } else if (canvasOverlay) {
+          canvasOverlay.remove();
+        }
+        drawingPoints = []; // CRITICAL: Reset the points for the next shape
+        drawingCanvas = null;
+        drawingCtx = null;
+        canvasOverlay = null;
       }
     });
 
